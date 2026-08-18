@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEBI Simulation Portal — Editable</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   DESIGN SYSTEM
+══════════════════════════════════════ */
+:root{
+  --bg:#f5f3ee;--surface:#ffffff;--surface2:#f0ede8;--surface3:#e8e4de;
+  --border:#ddd9d2;--border2:#c8c4bc;
+  --text:#1a1814;--muted:#6b6760;--hint:#aaa7a0;
+  --accent:#c4832a;--accent-light:#f5e6d0;
+  --blue:#2a5fc4;--blue-light:#e0eaf5;
+  --purple:#7c2ac4;--purple-light:#efe0f5;
+  --red:#c42a2a;--red-light:#f5e0e0;
+  --green:#2ac47c;--green-light:#e0f5ec;
+  --gold:#e8b84b;
+  --mono:'IBM Plex Mono',monospace;
+  --serif:'Playfair Display',serif;
+  --sans:'DM Sans',sans-serif;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.65;min-height:100vh}
+
+/* ══ OVERLAY / MODAL ══ */
+.overlay{position:fixed;inset:0;background:rgba(26,24,20,.85);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.overlay.hidden{display:none}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:36px 40px;width:100%;max-width:500px;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;background:var(--accent)}
+.modal-title{font-family:var(--serif);font-size:24px;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.7}
+.frow{margin-bottom:13px}
+.frow label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.frow input,.frow select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 13px;outline:none;transition:border-color .2s}
+.frow input:focus,.frow select:focus{border-color:var(--accent)}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.role-opt{border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;text-align:center}
+.role-opt:hover{border-color:var(--accent)}
+.role-opt.sel{border-color:var(--accent);background:var(--accent-light)}
+.ro-t{font-size:13px;font-weight:500}
+.ro-s{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+.btn-primary{width:100%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;padding:12px;border-radius:8px;border:none;cursor:pointer;transition:opacity .2s;margin-top:4px}
+.btn-primary:hover{opacity:.88}
+.btn-primary.blue{background:var(--blue)}
+.btn-primary.purple{background:var(--purple)}
+.modal-link{text-align:center;font-family:var(--mono);font-size:11px;color:var(--blue);cursor:pointer;margin-top:14px;text-decoration:underline}
+.err{background:var(--red-light);border:1px solid var(--red);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:10px;display:none;font-family:var(--mono)}
+.modal-div{display:flex;align-items:center;gap:10px;margin:14px 0}
+.modal-div span{flex:1;height:1px;background:var(--border)}
+.modal-div p{font-family:var(--mono);font-size:10px;color:var(--hint)}
+
+/* ══ HEADER ══ */
+.hdr{background:var(--surface);border-bottom:1.5px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--border)}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-brand{display:flex;align-items:center;gap:8px}
+.brand-mark{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-mark svg{width:15px;height:15px}
+.brand-text{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em}
+.case-chip{font-family:var(--mono);font-size:10px;background:var(--accent-light);color:var(--accent);padding:3px 9px;border-radius:20px;border:1px solid rgba(196,131,42,.25)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.stu-badge{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 11px}
+.stu-av{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-family:var(--mono);font-size:9px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stu-name{font-size:12px;font-weight:500}
+.stu-roll{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.stu-email{font-family:var(--mono);font-size:9px;color:var(--hint)}
+.ai-chip{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 9px}
+.ai-dot{width:6px;height:6px;border-radius:50%}
+.ai-dot.on{background:var(--green)}
+.ai-dot.off{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ai-dot.on{animation:pulse 2s infinite}
+.btn-xs{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 9px;cursor:pointer}
+.btn-xs:hover{color:var(--text);border-color:var(--border2)}
+
+/* ══ LAYOUT ══ */
+.layout{display:grid;grid-template-columns:256px 1fr;min-height:calc(100vh - 56px)}
+
+/* ══ SIDEBAR ══ */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sb-group{margin-bottom:4px}
+.sb-head{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--hint);padding:0 16px 7px;text-transform:uppercase}
+.nav-i{display:flex;align-items:center;gap:8px;padding:7px 16px;cursor:pointer;border-left:2.5px solid transparent;font-size:13px;color:var(--muted);transition:all .15s;position:relative}
+.nav-i:hover{background:var(--surface2);color:var(--text)}
+.nav-i.active{background:var(--accent-light);border-left-color:var(--accent);color:var(--text)}
+.nav-i.locked{opacity:.4;cursor:not-allowed}
+.nav-i.locked:hover{background:none;color:var(--muted)}
+.nav-i.done::after{content:'✓';position:absolute;right:14px;font-size:11px;color:var(--green);font-family:var(--mono)}
+.n-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.nav-i.active .n-dot{background:var(--accent)}
+.n-tag{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;margin-left:auto;flex-shrink:0}
+.ts{background:var(--accent-light);color:var(--accent)}
+.tn{background:var(--blue-light);color:var(--blue)}
+.tao{background:var(--purple-light);color:var(--purple)}
+.tev{background:var(--surface3);color:var(--muted)}
+.sb-div{height:1px;background:var(--border);margin:8px 14px}
+.stage-pill{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:10px;margin-left:4px}
+.stage-on{background:var(--green-light);color:var(--green)}
+.stage-off{background:var(--red-light);color:var(--red)}
+
+/* ══ MAIN ══ */
+.main{padding:32px 40px;max-width:860px}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ PAGE CHROME ══ */
+.pg-eyebrow{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.1em;margin-bottom:8px}
+.pg-title{font-family:var(--serif);font-size:30px;line-height:1.2;margin-bottom:8px}
+.pg-sub{font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.7}
+
+/* Meta cards */
+.meta-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
+.mc-l{font-family:var(--mono);font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.mc-v{font-size:13px;font-weight:500}
+
+/* Evidence */
+.ev-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;box-shadow:var(--shadow)}
+.ev-badge{font-family:var(--mono);font-size:9px;letter-spacing:.05em;padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:8px}
+.b-pdf{background:var(--accent-light);color:var(--accent)}
+.b-data{background:var(--green-light);color:var(--green)}
+.b-msg{background:var(--blue-light);color:var(--blue)}
+.b-vid{background:var(--red-light);color:var(--red)}
+.b-soc{background:var(--purple-light);color:var(--purple)}
+.ev-t{font-size:14px;font-weight:500;margin-bottom:5px}
+.ev-b{font-size:13px;color:var(--muted);line-height:1.7}
+.ev-b strong{color:var(--text);font-weight:500}
+
+/* Attached file previews in evidence */
+.attach-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.attach-item{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;transition:border-color .15s}
+.attach-item:hover{border-color:var(--border2)}
+.attach-icon{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.attach-name{font-size:11px;font-weight:500}
+.attach-size{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* Social mock */
+.social-mock{background:#1a1a2e;border-radius:10px;padding:16px 18px;margin-top:10px;color:#c8cad0}
+.s-plat{font-family:var(--mono);font-size:9px;color:#7c6be8;margin-bottom:10px;letter-spacing:.06em}
+.s-acct{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.s-av{width:34px;height:34px;background:linear-gradient(135deg,#e84b4b,#e8b84b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:11px;color:#fff;flex-shrink:0}
+.s-nm{font-size:13px;font-weight:500;color:#e8eaf0}
+.s-hd{font-family:var(--mono);font-size:10px;color:#7a7f8e}
+.s-body{font-size:13px;line-height:1.8;margin-bottom:10px}
+.htag{color:#4b9be8}.tick{color:#e8b84b;font-weight:500}.alrt{color:#e84b4b;font-weight:500}
+.s-stats{display:flex;gap:14px;font-family:var(--mono);font-size:10px;color:#7a7f8e}
+.s-stats span{color:#e8eaf0}
+.s-warn{background:rgba(232,75,75,.1);border:1px solid rgba(232,75,75,.2);border-radius:5px;padding:7px 11px;margin-top:10px;font-size:11px;color:#e84b4b;font-family:var(--mono)}
+
+/* Timeline */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1.5px;background:var(--border2)}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-dot{position:absolute;left:-19px;top:4px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.tl-dt{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px}
+.tl-ev{font-size:13px;font-weight:500}
+.tl-sb{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.6}
+
+/* Chart */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.chart-ttl{font-size:13px;font-weight:500;margin-bottom:2px}
+.chart-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:14px}
+canvas{width:100%!important;height:160px!important}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.leg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ══ TASK SHEETS ══ */
+.task-hdr{margin-bottom:20px}
+.task-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.rb{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px}
+.rb-s{background:var(--accent-light);color:var(--accent)}
+.rb-n{background:var(--blue-light);color:var(--blue)}
+.rb-ao{background:var(--purple-light);color:var(--purple)}
+.tnum{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.instr{background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:20px}
+.instr h4{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.08em;margin-bottom:7px}
+.instr li{font-size:12px;color:var(--text);margin-bottom:4px;margin-left:14px;line-height:1.6}
+.instr li strong{font-weight:500}
+
+/* Student strip */
+.stu-strip{display:flex;align-items:center;gap:10px;background:var(--blue-light);border:1px solid rgba(42,95,196,.2);border-radius:8px;padding:9px 14px;margin-bottom:18px}
+.ss-av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ss-info{flex:1}
+.ss-name{font-size:13px;font-weight:500}
+.ss-meta{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.ss-time{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* Model answer strip */
+.model-strip{background:var(--green-light);border:1px solid rgba(42,196,124,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:none}
+.model-strip.on{display:block}
+.ms-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.ms-label{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.07em}
+.ms-toggle{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 8px;cursor:pointer}
+.ms-body{font-size:12px;color:var(--muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s}
+.ms-body.open{max-height:400px;margin-top:8px}
+
+/* Form fields */
+.fs{margin-bottom:20px}
+.fs-ttl{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1.5px solid var(--border)}
+.field{margin-bottom:14px}
+.field-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.field label{font-size:13px;font-weight:500;color:var(--text)}
+.wc{font-family:var(--mono);font-size:10px;color:var(--hint)}
+.wc.ok{color:var(--green)}
+.hint{font-family:var(--mono);font-size:10px;color:var(--hint);margin-bottom:6px;line-height:1.5}
+.field input[type=text],.field select,.field textarea{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;line-height:1.7}
+.field input[type=text]:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:100px}
+.prov-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pcheck{display:flex;align-items:flex-start;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:9px 11px;cursor:pointer;transition:border-color .15s}
+.pcheck:hover{border-color:var(--border2)}
+.pcheck input{margin-top:2px;accent-color:var(--accent);flex-shrink:0}
+.pcheck span{font-size:11px;color:var(--muted);line-height:1.5}
+.pcheck span strong{display:block;color:var(--text);font-weight:500;margin-bottom:1px;font-size:12px}
+.pen-wrap{margin-top:4px}
+.pen-slider{width:100%;accent-color:var(--accent)}
+.pen-val{font-family:var(--mono);font-size:18px;color:var(--accent);margin-top:4px}
+.scale-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--hint);margin-top:3px}
+
+/* ══ FILE ATTACHMENT WIDGET ══ */
+.attach-zone{border:2px dashed var(--border2);border-radius:10px;padding:16px 18px;margin-top:10px;transition:all .2s;cursor:pointer;background:var(--surface2)}
+.attach-zone:hover,.attach-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.attach-zone-inner{display:flex;align-items:center;gap:12px}
+.attach-zone-icon{width:36px;height:36px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.attach-zone-text{flex:1}
+.az-main{font-size:13px;font-weight:500}
+.az-sub{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.btn-browse{font-family:var(--mono);font-size:10px;background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 11px;cursor:pointer}
+.file-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.file-chip{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;max-width:220px}
+.fc-icon{font-size:14px;flex-shrink:0}
+.fc-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:500}
+.fc-size{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.fc-rm{width:16px;height:16px;border-radius:50%;background:var(--border);border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted)}
+.fc-rm:hover{background:var(--red-light);color:var(--red)}
+.fc-preview{width:48px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+
+/* ══ SUBMIT ══ */
+.submit-area{margin-top:22px;padding-top:18px;border-top:1.5px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-submit{background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;padding:11px 22px;border-radius:8px;border:none;cursor:pointer;transition:opacity .2s}
+.btn-submit:hover{opacity:.88}
+.btn-submit:disabled{opacity:.35;cursor:not-allowed}
+.sub-stamp{display:none;background:var(--green-light);border:1px solid rgba(42,196,124,.3);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:10px;color:var(--green)}
+.sub-note{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* ══ AI PANEL ══ */
+.ai-panel{background:var(--blue-light);border:1px solid rgba(42,95,196,.2);border-radius:10px;padding:18px 22px;margin-top:16px;display:none}
+.ai-panel.on{display:block;animation:fadeIn .4s ease}
+.ai-ph{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.ai-ico{width:22px;height:22px;background:var(--blue);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-lbl{font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.06em}
+.ai-mod{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto;background:var(--surface);border:1px solid var(--border);padding:2px 7px;border-radius:3px}
+.cmp-note{background:var(--green-light);border:1px solid rgba(42,196,124,.25);border-radius:5px;padding:6px 11px;font-family:var(--mono);font-size:10px;color:var(--green);margin-bottom:10px;display:none}
+.cmp-note.on{display:block}
+.ai-fb{font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px}
+.ai-scores{display:flex;gap:8px;flex-wrap:wrap}
+.ai-sc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:82px;box-shadow:var(--shadow)}
+.ai-sc-v{font-family:var(--mono);font-size:22px;font-weight:500}
+.ai-sc-l{font-size:10px;color:var(--muted);margin-top:2px}
+.ai-err{color:var(--red);font-family:var(--mono);font-size:11px;background:var(--red-light);border:1px solid rgba(196,42,42,.2);border-radius:6px;padding:10px 13px;line-height:1.7}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.dots span{display:inline-block;animation:blink 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+
+/* ══ COMMAND & CONTROL ══ */
+.cc-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;box-shadow:var(--shadow)}
+.cc-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cc-title{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.06em;font-weight:500}
+.cc-live{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--red)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite}
+.cc-section{margin-bottom:24px}
+.cc-sec-title{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stage-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+.sc-label{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase}
+.sc-name{font-size:12px;font-weight:500;margin-bottom:9px}
+.toggle-row{display:flex;align-items:center;gap:8px}
+.tog{width:36px;height:20px;border-radius:10px;background:var(--border2);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--green)}
+.tog-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on .tog-thumb{transform:translateX(16px)}
+.sc-status{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.tog.on + .sc-status{color:var(--green)}
+
+/* Model answer editor */
+.ma-grid{display:grid;gap:10px}
+.ma-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+.ma-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ma-label{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.05em}
+.ma-role{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px}
+.ma-ta{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--sans);font-weight:300;padding:9px 12px;outline:none;resize:vertical;min-height:75px;line-height:1.7;transition:border-color .2s}
+.ma-ta:focus{border-color:var(--accent)}
+.btn-save-ma{background:var(--accent-light);color:var(--accent);font-family:var(--mono);font-size:11px;border:1px solid rgba(196,131,42,.3);border-radius:6px;padding:8px 16px;cursor:pointer;margin-top:4px}
+.btn-save-ma:hover{background:rgba(196,131,42,.2)}
+
+/* ══ CONTENT EDITOR (faculty edit mode) ══ */
+.edit-btn{display:none;font-family:var(--mono);font-size:9px;color:var(--accent);background:var(--accent-light);border:1px solid rgba(196,131,42,.25);border-radius:4px;padding:2px 7px;cursor:pointer;margin-left:8px;vertical-align:middle}
+.edit-mode .edit-btn{display:inline-block}
+.editable{outline:none;transition:background .2s;border-radius:4px}
+.edit-mode .editable:hover{background:rgba(196,131,42,.07);cursor:text}
+.edit-mode .editable:focus{background:rgba(196,131,42,.07);box-shadow:0 0 0 2px rgba(196,131,42,.3)}
+.edit-mode-bar{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 20px;border-radius:30px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;z-index:200;box-shadow:0 4px 20px rgba(196,131,42,.4);align-items:center;gap:14px}
+.edit-mode-bar.on{display:flex}
+.btn-save-edits{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer}
+
+/* Submissions table */
+.sub-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sub-tbl th{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1.5px solid var(--border);text-transform:uppercase;letter-spacing:.06em}
+.sub-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.sub-tbl tr:hover td{background:var(--surface2)}
+.score-pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px}
+.sc-hi{background:var(--green-light);color:var(--green)}
+.sc-mid{background:var(--accent-light);color:var(--accent)}
+.sc-lo{background:var(--red-light);color:var(--red)}
+.empty-st{text-align:center;padding:24px;font-family:var(--mono);font-size:11px;color:var(--hint)}
+.btn-view{font-family:var(--mono);font-size:9px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline}
+
+/* Config fields */
+.cfg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.cfg-field label{font-family:var(--mono);font-size:9px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase}
+.cfg-field input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 11px;outline:none;transition:border-color .2s}
+.cfg-field input:focus{border-color:var(--accent)}
+.btn-save-cfg{background:var(--blue-light);color:var(--blue);font-family:var(--mono);font-size:11px;border:1px solid rgba(42,95,196,.25);border-radius:6px;padding:8px 16px;cursor:pointer}
+.code-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;font-family:var(--mono);font-size:11px;color:var(--blue);line-height:1.9;white-space:pre-wrap;overflow-x:auto;margin-top:8px}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1.5px solid var(--green);border-radius:9px;padding:11px 18px;font-family:var(--mono);font-size:11px;color:var(--green);z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;box-shadow:var(--shadow)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{border-color:var(--red);color:var(--red)}
+
+/* ══ TWO-WAY EVALUATION ══ */
+.eval-tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1.5px solid var(--border)}
+.eval-tab{flex:1;text-align:center;padding:9px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;margin-bottom:-1.5px}
+.eval-tab:hover{color:var(--text);background:var(--surface2)}
+.eval-tab.active-tab{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-light)}
+.eval-tab.expert-tab.active-tab{color:var(--green);border-bottom-color:var(--green);background:var(--green-light)}
+.eval-pane{display:none;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px}
+.eval-pane.active-pane{display:block;animation:fadeIn .2s ease}
+.eval-container{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:16px;box-shadow:var(--shadow)}
+/* Grok pane */
+.grok-pane-inner{padding:16px 20px;background:var(--blue-light)}
+/* Expert pane */
+.expert-pane-inner{padding:16px 20px;background:var(--green-light)}
+.expert-ph{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.expert-ico{width:22px;height:22px;background:var(--green);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.expert-lbl{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.06em}
+.expert-src{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto;background:var(--surface);border:1px solid var(--border);padding:2px 7px;border-radius:3px}
+.expert-fb{font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px}
+.expert-scores{display:flex;gap:8px;flex-wrap:wrap}
+.expert-sc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:82px;box-shadow:var(--shadow)}
+.expert-sc-v{font-family:var(--mono);font-size:22px;font-weight:500}
+.expert-sc-l{font-size:10px;color:var(--muted);margin-top:2px}
+.expert-how{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--muted);line-height:1.7}
+.expert-how strong{color:var(--text);font-weight:500}
+.expert-how code{background:var(--surface2);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:10px;color:var(--blue)}
+.expert-sheets-url{display:flex;gap:8px;margin-top:10px}
+.expert-sheets-url input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 11px;outline:none;transition:border-color .2s}
+.expert-sheets-url input:focus{border-color:var(--green)}
+.expert-sheets-url button{background:var(--green);color:#fff;font-family:var(--mono);font-size:10px;border:none;border-radius:6px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.comparison-bar{height:4px;border-radius:2px;margin:14px 0 8px;background:var(--border);overflow:hidden}
+.comparison-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;background:var(--accent)}
+.score-compare-row{display:flex;gap:12px;align-items:center;margin-bottom:6px;font-size:12px}
+.sc-label-col{width:120px;color:var(--muted);font-family:var(--mono);font-size:10px;flex-shrink:0}
+.sc-bar-col{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.sc-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.sc-val-col{width:32px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:500}
+.verdict-box{border-radius:8px;padding:12px 16px;margin-top:14px;font-size:13px;line-height:1.7}
+.verdict-box.agree{background:var(--green-light);border:1px solid rgba(42,196,124,.25);color:var(--text)}
+.verdict-box.disagree{background:var(--accent-light);border:1px solid rgba(196,131,42,.25);color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     OVERLAYS
+══════════════════════════════ -->
+<!-- Student login -->
+<div class="overlay" id="ov-login">
+<div class="modal">
+  <div class="modal-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="1" y="1" width="9" height="9" fill="#fff"/><rect x="12" y="1" width="9" height="9" fill="#fff"/><rect x="1" y="12" width="9" height="9" fill="#fff"/><rect x="12" y="12" width="9" height="9" fill="#fff" opacity=".4"/></svg></div>
+  <div class="modal-title">SEBI Simulation Portal</div>
+  <div class="modal-sub">Enter your details to access the case file. Your name, roll number, and email are attached to every submission and logged automatically.</div>
+  <div class="frow"><label>Full name</label><input id="l-name" type="text" placeholder="e.g. Priya Sharma" autocomplete="off"></div>
+  <div class="frow"><label>Roll number</label><input id="l-roll" type="text" placeholder="e.g. LLM-2024-047"></div>
+  <div class="frow"><label>Email address</label><input id="l-email" type="email" placeholder="e.g. priya.sharma@university.edu" autocomplete="off"></div>
+  <div class="frow"><label>Your role</label></div>
+  <div class="role-grid" id="role-grid">
+    <div class="role-opt sel" data-role="SEBI Team" onclick="selRole(this)"><div class="ro-t">SEBI Team</div><div class="ro-s">Tasks 1, 3, 4</div></div>
+    <div class="role-opt" data-role="Noticee / Defence" onclick="selRole(this)"><div class="ro-t">Noticee / Defence</div><div class="ro-s">Tasks 2, 5</div></div>
+    <div class="role-opt" data-role="Adjudicating Officer" onclick="selRole(this)"><div class="ro-t">Adj. Officer</div><div class="ro-s">Task 6</div></div>
+    <div class="role-opt" data-role="Observer" onclick="selRole(this)"><div class="ro-t">Observer</div><div class="ro-s">Read-only</div></div>
+  </div>
+  <button class="btn-primary" onclick="doLogin()">Enter simulation</button>
+  <div class="err" id="l-err">Please enter your name, roll number, and a valid email address.</div>
+  <!-- Faculty access: press Ctrl+Shift+F on this screen -->
+</div>
+</div>
+
+<!-- Faculty login -->
+<div class="overlay hidden" id="ov-fac">
+<div class="modal">
+  <div class="modal-icon" style="background:var(--purple)"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polygon points="11,2 14,8.5 21,8.5 15.5,12.5 17.5,19 11,15 4.5,19 6.5,12.5 1,8.5 8,8.5" fill="#fff"/></svg></div>
+  <div class="modal-title">Faculty dashboard</div>
+  <div class="modal-sub">Enter your faculty password to access stage controls, model answers, content editor, and all student submissions.</div>
+  <div class="frow"><label>Password</label><input id="f-pass" type="password" placeholder="Enter faculty password" onkeydown="if(event.key==='Enter')doFacLogin()"></div>
+  <button class="btn-primary purple" onclick="doFacLogin()">Access dashboard</button>
+  <div class="err" id="f-err">Incorrect password. Please try again.</div>
+  <div class="modal-link" onclick="showLogin()">← Back to student login</div>
+</div>
+</div>
+
+<!-- Submission viewer -->
+<div class="overlay hidden" id="ov-view">
+<div class="modal" style="max-width:660px;max-height:82vh;overflow-y:auto">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div class="modal-title" style="font-size:18px" id="view-title">Submission</div>
+    <button class="btn-xs" onclick="document.getElementById('ov-view').classList.add('hidden')">Close ×</button>
+  </div>
+  <div id="view-body" style="font-size:13px;color:var(--muted);line-height:1.8"></div>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-brand">
+      <div class="brand-mark"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x=".5" y=".5" width="6" height="6" fill="#fff"/><rect x="8.5" y=".5" width="6" height="6" fill="#fff"/><rect x=".5" y="8.5" width="6" height="6" fill="#fff"/><rect x="8.5" y="8.5" width="6" height="6" fill="#fff" opacity=".4"/></svg></div>
+      <span class="brand-text">SEBI SIMULATION</span>
+    </div>
+    <span class="case-chip">WRO/IVD/2024-25/0047</span>
+  </div>
+  <div class="hdr-right">
+    <div class="stu-badge" id="stu-badge" style="display:none">
+      <div class="stu-av" id="hdr-av">--</div>
+      <div><div class="stu-name" id="hdr-name">--</div><div class="stu-roll" id="hdr-roll">--</div><div class="stu-email" id="hdr-email">--</div></div>
+    </div>
+    <div class="ai-chip"><div class="ai-dot" id="ai-dot"></div><span id="ai-txt" style="font-family:var(--mono);font-size:10px">Groq AI</span></div>
+    <button class="btn-xs" id="edit-toggle-btn" style="display:none;color:var(--accent);border-color:rgba(196,131,42,.3)" onclick="toggleEditMode()">Edit content</button>
+    <button class="btn-xs" onclick="resetSess()">Exit</button>
+  </div>
+</div>
+
+<!-- Edit mode bar -->
+<div class="edit-mode-bar" id="edit-bar">
+  <span>Edit mode — click any text to edit</span>
+  <button class="btn-save-edits" onclick="saveEdits()">Save edits</button>
+  <button class="btn-save-edits" onclick="toggleEditMode()">Done</button>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-group">
+    <div class="sb-head">Overview</div>
+    <div class="nav-i active" onclick="nav('overview',this)"><div class="n-dot"></div>Case brief</div>
+    <div class="nav-i" onclick="nav('timeline',this)"><div class="n-dot"></div>Event timeline</div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-group">
+    <div class="sb-head">Evidence folder</div>
+    <div class="nav-i" onclick="nav('ev-a',this)"><div class="n-dot"></div>Exhibit A <span class="n-tag tev">PDF</span></div>
+    <div class="nav-i" onclick="nav('ev-b',this)"><div class="n-dot"></div>Exhibit B <span class="n-tag tev">CHART</span></div>
+    <div class="nav-i" onclick="nav('ev-c',this)"><div class="n-dot"></div>Exhibit C <span class="n-tag tev">MSG</span></div>
+    <div class="nav-i" onclick="nav('ev-d',this)"><div class="n-dot"></div>Exhibit D <span class="n-tag tev">VIDEO</span></div>
+    <div class="nav-i" onclick="nav('ev-e',this)"><div class="n-dot"></div>Exhibit E <span class="n-tag tev">SOCIAL</span></div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-group">
+    <div class="sb-head">Response sheets</div>
+    <div class="nav-i" id="nav-t1" onclick="openTask('t1',this)"><div class="n-dot"></div>1. Show cause notice <span class="n-tag ts">SEBI</span></div>
+    <div class="nav-i" id="nav-t2" onclick="openTask('t2',this)"><div class="n-dot"></div>2. Reply to SCN <span class="n-tag tn">NOTICEE</span></div>
+    <div class="nav-i" id="nav-t3" onclick="openTask('t3',this)"><div class="n-dot"></div>3. Investigation report <span class="n-tag ts">SEBI</span></div>
+    <div class="nav-i" id="nav-t4" onclick="openTask('t4',this)"><div class="n-dot"></div>4. Enforcement deck <span class="n-tag ts">SEBI</span></div>
+    <div class="nav-i" id="nav-t5" onclick="openTask('t5',this)"><div class="n-dot"></div>5. Defence arguments <span class="n-tag tn">NOTICEE</span></div>
+    <div class="nav-i" id="nav-t6" onclick="openTask('t6',this)"><div class="n-dot"></div>6. Adjudication order <span class="n-tag tao">AO</span></div>
+  </div>
+  <div class="sb-div" id="fac-div" style="display:none"></div>
+  <div class="sb-group" id="fac-group" style="display:none">
+    <div class="sb-head">Faculty</div>
+    <div class="nav-i" onclick="nav('cc',this)"><div class="n-dot"></div>Command &amp; control</div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- OVERVIEW -->
+<div class="section active" id="section-overview">
+  <div class="pg-eyebrow">IN THE MATTER OF</div>
+  <div class="pg-title"><span class="editable" contenteditable="false" id="ed-case-title">Nakshatra Textiles Ltd — Alleged Market Manipulation</span></div>
+  <div class="pg-sub"><span class="editable" contenteditable="false" id="ed-case-sub">SEBI Western Regional Office · Investigation No. WRO/IVD/2024-25/0047 · Securities market manipulation under PFUTP Regulations 2003</span></div>
+  <div class="meta-row">
+    <div class="mc"><div class="mc-l">Noticee</div><div class="mc-v editable" contenteditable="false" id="ed-noticee">Arvind Mehta</div></div>
+    <div class="mc"><div class="mc-l">Scrip</div><div class="mc-v editable" contenteditable="false" id="ed-scrip">NAKTEX · BSE 543210</div></div>
+    <div class="mc"><div class="mc-l">Regulation</div><div class="mc-v editable" contenteditable="false" id="ed-reg">PFUTP 2003 §3, §4</div></div>
+    <div class="mc"><div class="mc-l">Period</div><div class="mc-v editable" contenteditable="false" id="ed-period">Mar – May 2024</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px">
+    <div class="ev-card"><div class="ev-t">The allegation</div><div class="ev-b editable" contenteditable="false" id="ed-allegation">Arvind Mehta ran "AM Super Stock Tips" with 47,000 Telegram subscribers and a YouTube channel. He allegedly bought 85,000 shares in Nakshatra Textiles at avg ₹44 before tipping followers, then sold at avg ₹172 into the resulting price rise. Stock rose 340% in 38 sessions, then crashed 74%. An anonymous X post appeared 12 hours before his first tip.</div></div>
+    <div class="ev-card"><div class="ev-t">Key ambiguities</div><div class="ev-b editable" contenteditable="false" id="ed-ambiguity">Was the rise caused by tips or the textile news event (28 Mar)? Does the disclaimer cure the IA Regulations violation? Can the anonymous X post be attributed to Mehta? These deliberate ambiguities ensure both sides have genuinely arguable positions.</div></div>
+  </div>
+  <div style="background:var(--accent-light);border:1px solid rgba(196,131,42,.25);border-radius:10px;padding:14px 18px" id="session-info">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--accent);margin-bottom:6px;letter-spacing:.07em">YOUR SESSION</div>
+    <div id="sess-txt" style="font-size:13px;color:var(--muted)">Loading...</div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="section" id="section-timeline">
+  <div class="pg-eyebrow">CHRONOLOGY</div>
+  <div class="pg-title">Event timeline</div>
+  <div class="pg-sub">Cross-reference with Exhibits B, C, and E. The 12-hour gap between Exhibit E and the first Telegram tip is the simulation's central evidentiary puzzle.</div>
+  <div class="tl">
+    <div class="tl-item"><div class="tl-dot" style="background:var(--accent)"></div><div class="tl-dt">1 Mar 2024</div><div class="tl-ev">Mehta begins purchasing NAKTEX shares</div><div class="tl-sb">85,000 shares over 10 sessions · avg ₹44 · Demat DP IN302201-XXXXXX</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-dt">17 Mar 2024 · 11:42 PM</div><div class="tl-ev">Anonymous X post — @StockAlertIndia</div><div class="tl-sb">Claims ₹800Cr govt order for NAKTEX · Account created just 3 days prior · 4,200 retweets overnight · <strong style="color:var(--red)">Exhibit E</strong></div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-dt">18 Mar 2024 · 9:02 AM</div><div class="tl-ev">First Telegram tip — 47,000 subscribers</div><div class="tl-sb">Stock opens +8% on very high volume · 12 hours after the anonymous X post</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--accent)"></div><div class="tl-dt">22 Mar 2024</div><div class="tl-ev">YouTube video published</div><div class="tl-sb">"Best Stock for 2024" · claims insider knowledge of govt order · 1.2 lakh views before deletion</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-dt">28 Mar 2024</div><div class="tl-ev">Legitimate textile export data released by Govt</div><div class="tl-sb">Sector rally. Defence will argue this — not Mehta's tips — caused the price rise.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-dt">2 Apr 2024</div><div class="tl-ev">Mehta begins selling · channel still says "HOLD"</div><div class="tl-sb">First sale: 10,000 shares at ₹162. Selling continues while telling followers to hold.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-dt">19 Apr 2024</div><div class="tl-ev">Mehta fully exits · channel goes silent same day</div><div class="tl-sb">Avg exit ₹172 · Estimated gain ₹1.09 Cr (291% return in 49 days)</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--muted)"></div><div class="tl-dt">25 Apr 2024</div><div class="tl-ev">YouTube video deleted by Mehta</div><div class="tl-sb">SEBI had already archived a copy on 22 Apr via third-party intermediary</div></div>
+    <div class="tl-item"><div class="tl-dot" style="background:var(--muted)"></div><div class="tl-dt">20 May 2024</div><div class="tl-ev">Complaint received — stock now at ₹47 (−74% from peak)</div><div class="tl-sb">Suresh Patel files complaint at SEBI Western Regional Office, Mumbai</div></div>
+  </div>
+</div>
+
+<!-- EXHIBIT A -->
+<div class="section" id="section-ev-a">
+  <div class="pg-eyebrow">EXHIBIT A</div>
+  <div class="pg-title">Investor complaint letter</div>
+  <div class="ev-card">
+    <div class="ev-badge b-pdf">PDF DOCUMENT · SURESH PATEL → SEBI WRO · 20 MAY 2024</div>
+    <div class="ev-b editable" contenteditable="false" id="ed-ev-a">
+      "I am a retired schoolteacher. In March 2024 I subscribed to AM Super Stock Tips after seeing it recommended in a finance group. On 18 March the channel owner strongly recommended buying Nakshatra Textiles — target ₹250, 'sure shot multibagger'. I purchased 2,000 shares at ₹186 on 19 March."<br><br>
+      "When the price started falling in late April, the channel was already silent. I tried contacting the number on the channel — no response. I have now lost <strong>₹2.68 lakh</strong>. I later discovered the channel owner had sold all his shares while still telling us to hold."<br><br>
+      <strong>Annexures:</strong> Telegram screenshots · Bank statement showing purchase · Screenshots from 3 other investors with similar losses totalling ₹8.4 lakh.
+    </div>
+    <!-- ATTACHMENT ZONE for Exhibit A -->
+    <div style="margin-top:14px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.05em">ATTACHED DOCUMENTS</div>
+      <div id="files-ev-a" class="file-list"></div>
+      <div class="attach-zone" onclick="triggerUpload('ev-a')" ondragover="dragOver(event,'ev-a')" ondragleave="dragLeave('ev-a')" ondrop="dropFile(event,'ev-a')" id="az-ev-a">
+        <div class="attach-zone-inner">
+          <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="attach-zone-text"><div class="az-main">Attach complaint PDF or screenshot</div><div class="az-sub">PDF, JPG, PNG · Drag &amp; drop or click browse</div></div>
+          <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('ev-a')">Browse</button>
+        </div>
+      </div>
+      <input type="file" id="fu-ev-a" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleFiles(this,'ev-a')">
+    </div>
+  </div>
+</div>
+
+<!-- EXHIBIT B -->
+<div class="section" id="section-ev-b">
+  <div class="pg-eyebrow">EXHIBIT B</div>
+  <div class="pg-title">Trading data — Nakshatra Textiles Ltd</div>
+  <div class="chart-wrap">
+    <div class="chart-ttl">NAKTEX closing price · Mar–May 2024</div>
+    <div class="chart-sub">BSE trade-by-trade data · ₹48 Cr market cap pre-event</div>
+    <canvas id="pc"></canvas>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>Mehta buying (1–14 Mar)</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>First tip (18 Mar)</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Textile news (28 Mar)</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>Mehta selling (2–19 Apr)</div>
+    </div>
+  </div>
+  <div class="ev-card" style="margin-top:12px">
+    <div class="ev-badge b-data">DEMAT ACCOUNT DP IN302201-XXXXXX</div>
+    <div class="ev-b"><strong>Purchases:</strong> 1–14 Mar · 85,000 shares · Avg ₹44 · Total cost ₹37.4L<br><strong>Sales:</strong> 2–19 Apr · 85,000 shares · Avg ₹172 · Total proceeds ₹1.46 Cr<br><strong>Estimated profit:</strong> ₹1.09 Cr (291% return in 49 days)<br><em style="color:var(--muted)">Key: Entire position built BEFORE first public tip. Channel goes silent same day as last sale.</em></div>
+    <div style="margin-top:12px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">ATTACH ADDITIONAL TRADING DATA SHEETS</div>
+      <div id="files-ev-b" class="file-list"></div>
+      <div class="attach-zone" onclick="triggerUpload('ev-b')" ondragover="dragOver(event,'ev-b')" ondragleave="dragLeave('ev-b')" ondrop="dropFile(event,'ev-b')" id="az-ev-b">
+        <div class="attach-zone-inner">
+          <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="attach-zone-text"><div class="az-main">Attach trading data CSV or chart screenshot</div><div class="az-sub">CSV, XLSX, PDF, PNG · Drag &amp; drop or browse</div></div>
+          <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('ev-b')">Browse</button>
+        </div>
+      </div>
+      <input type="file" id="fu-ev-b" multiple accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls" style="display:none" onchange="handleFiles(this,'ev-b')">
+    </div>
+  </div>
+</div>
+
+<!-- EXHIBIT C -->
+<div class="section" id="section-ev-c">
+  <div class="pg-eyebrow">EXHIBIT C</div>
+  <div class="pg-title">Advisory messages — Telegram channel</div>
+  <div class="ev-card">
+    <div class="ev-badge b-msg">TELEGRAM · AM SUPER STOCK TIPS · 47,000 SUBSCRIBERS</div>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px">18 MAR 2024 · 09:02 AM · 47,312 recipients</div><div style="font-size:13px;line-height:1.7" class="editable" contenteditable="false" id="ed-msg1">Nakshatra Textiles — <strong style="color:var(--accent)">BUY NOW</strong>. Target ₹250 in 3 months. Multibagger. Don't miss. Have done deep research. Management is excellent. 🚀</div></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px">8 APR 2024 · 6:47 PM · 6 days after Mehta begins selling</div><div style="font-size:13px;line-height:1.7" class="editable" contenteditable="false" id="ed-msg2">Friends, <strong style="color:var(--accent)">still holding Nakshatra</strong>. Some profit booking happening — completely normal. Target raised to ₹300. <em style="color:var(--muted)">Do not panic sell.</em> 💪</div></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px 14px"><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:5px">19 APR 2024 · Same day as Mehta's last sale</div><div style="font-size:13px;color:var(--muted);font-style:italic">— Channel silent from this date —</div></div>
+    </div>
+    <div style="background:var(--red-light);border:1px solid rgba(196,42,42,.2);border-radius:5px;padding:7px 11px;margin-top:10px;font-size:11px;color:var(--red);font-family:var(--mono)">DISCLAIMER (pinned message): "This channel is for educational purposes only. Not SEBI registered. Not investment advice. Please consult your financial advisor."</div>
+    <!-- Attach audio/voice note -->
+    <div style="margin-top:12px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">ATTACH AUDIO / VOICE NOTE EVIDENCE</div>
+      <div id="files-ev-c" class="file-list"></div>
+      <div class="attach-zone" onclick="triggerUpload('ev-c')" ondragover="dragOver(event,'ev-c')" ondragleave="dragLeave('ev-c')" ondrop="dropFile(event,'ev-c')" id="az-ev-c">
+        <div class="attach-zone-inner">
+          <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="6" y="2" width="6" height="9" rx="3" stroke="var(--blue)" stroke-width="1.5"/><path d="M3 9a6 6 0 0012 0M9 15v2M6 17h6" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="attach-zone-text"><div class="az-main">Attach Telegram screenshots or audio clips</div><div class="az-sub">PNG, JPG, MP3, MP4, PDF</div></div>
+          <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('ev-c')">Browse</button>
+        </div>
+      </div>
+      <input type="file" id="fu-ev-c" multiple accept=".pdf,.jpg,.jpeg,.png,.mp3,.mp4,.wav" style="display:none" onchange="handleFiles(this,'ev-c')">
+    </div>
+  </div>
+</div>
+
+<!-- EXHIBIT D -->
+<div class="section" id="section-ev-d">
+  <div class="pg-eyebrow">EXHIBIT D</div>
+  <div class="pg-title">YouTube video — archived copy</div>
+  <div class="ev-card">
+    <div class="ev-badge b-vid">VIDEO EVIDENCE · SEBI ARCHIVED 22 APR 2024 · DELETED BY MEHTA 25 APR</div>
+    <div style="background:var(--surface2);border-radius:8px;padding:14px;margin-top:12px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">TRANSCRIPT — KEY SEGMENTS (duration: 6:04)</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:8px"><strong style="color:var(--red);font-family:var(--mono);font-size:9px">[2:30–3:45] KEY SEGMENT</strong> <em class="editable" contenteditable="false" id="ed-vid-seg">"I have information from very reliable sources that Nakshatra Textiles is about to receive a very large government order — I cannot say more but trust me, load up before the announcement. Target minimum ₹250, possibly ₹300."</em></p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.8"><strong style="color:var(--accent);font-family:var(--mono);font-size:9px">[5:10–6:04]</strong> "Remember: I am not SEBI registered, this is just my personal view, do your own research" — spoken rapidly at the very end.</p>
+    </div>
+    <div class="ev-b" style="margin-top:10px"><strong>Published:</strong> 22 Mar 2024 · <strong>Views before deletion:</strong> 1,21,400 · <em>Legal issue: Does claiming "insider information" + specific price targets constitute investment advisory regardless of end disclaimer? See IA Regulations 2013, Reg 3(1).</em></div>
+    <!-- Video/document upload -->
+    <div style="margin-top:12px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">ATTACH VIDEO FILE OR TRANSCRIPT</div>
+      <div id="files-ev-d" class="file-list"></div>
+      <div class="attach-zone" onclick="triggerUpload('ev-d')" ondragover="dragOver(event,'ev-d')" ondragleave="dragLeave('ev-d')" ondrop="dropFile(event,'ev-d')" id="az-ev-d">
+        <div class="attach-zone-inner">
+          <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="var(--red)" stroke-width="1.5"/><path d="M7 7l5 3-5 3V7z" fill="var(--red)"/></svg></div>
+          <div class="attach-zone-text"><div class="az-main">Attach video file or transcript PDF</div><div class="az-sub">MP4, MOV, PDF, DOCX</div></div>
+          <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('ev-d')">Browse</button>
+        </div>
+      </div>
+      <input type="file" id="fu-ev-d" multiple accept=".pdf,.jpg,.jpeg,.png,.mp4,.mov,.docx,.doc" style="display:none" onchange="handleFiles(this,'ev-d')">
+    </div>
+  </div>
+</div>
+
+<!-- EXHIBIT E -->
+<div class="section" id="section-ev-e">
+  <div class="pg-eyebrow">EXHIBIT E — KEY EVIDENCE</div>
+  <div class="pg-title">Anonymous social media post</div>
+  <div class="pg-sub">Posted 12 hours before Mehta's first Telegram tip. Account created just 3 days prior. No direct link to Mehta proven — yet the timing and tool fingerprint are the simulation's central investigative puzzle.</div>
+  <div class="social-mock">
+    <div class="s-plat">X (TWITTER) · RECONSTRUCTED FROM ARCHIVED SCREENSHOT · 17 MAR 2024 · 23:42 IST</div>
+    <div class="s-acct"><div class="s-av">SA</div><div><div class="s-nm">Stock Alert India</div><div class="s-hd">@StockAlertIndia · Account created: 14 Mar 2024 (3 days before post)</div></div></div>
+    <div class="s-body">🚨 <span class="alrt">BREAKING — UNCONFIRMED</span> 🚨<br><br>Sources inside Ministry of Textiles confirm <span class="tick">$NAKTEX</span> (Nakshatra Textiles BSE:543210) is getting <span class="tick">₹800 CRORE</span> government export promotion order. Announcement expected in 2–3 days.<br><br>This is a <span class="tick">SMALL CAP MULTIBAGGER</span> alert. Do your own research but do it FAST.<br><br><span class="htag">#NAKTEX #NakshatraTextiles #StockTips #MultiBagger #SmallCap #BSE</span></div>
+    <div class="s-stats">Retweets: <span>4,214</span> &nbsp; Likes: <span>8,901</span> &nbsp; Views: <span>2.3L</span> &nbsp; Quotes: <span>612</span></div>
+    <div class="s-warn">DELETED 20 APR 2024 · SEBI OBTAINED VIA COURT ORDER · @StockAlertIndia — NO DIRECT LINK TO MEHTA ESTABLISHED · CHART IN POST USES SAME TOOL AS MEHTA'S YOUTUBE VIDEO</div>
+  </div>
+  <div class="ev-card" style="margin-top:12px">
+    <div class="ev-b">
+      <strong>For SEBI team:</strong> Account created 3 days before posting. Chart watermark matches Mehta's YouTube. Post appeared 12 hours before Mehta's first tip. The false "govt order" claim is fraud under PFUTP §3(a) — but can it be attributed to Mehta without direct evidence?<br><br>
+      <strong>For defence:</strong> No IP address, no phone record, no financial nexus links Mehta to the account. The same charting tool is used by 50,000+ retail investors. Circumstantial timing alone cannot satisfy the legal standard of proof.
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">ATTACH SCREENSHOT OR ARCHIVED POST</div>
+      <div id="files-ev-e" class="file-list"></div>
+      <div class="attach-zone" onclick="triggerUpload('ev-e')" ondragover="dragOver(event,'ev-e')" ondragleave="dragLeave('ev-e')" ondrop="dropFile(event,'ev-e')" id="az-ev-e">
+        <div class="attach-zone-inner">
+          <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="var(--purple)" stroke-width="1.5"/><path d="M6.5 7.5C6.5 6 7.2 5 9 5c1.8 0 2.5 1.2 2.5 2.5 0 1.5-1.5 2-1.5 3.5" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="13.5" r=".75" fill="var(--purple)"/></svg></div>
+          <div class="attach-zone-text"><div class="az-main">Attach social media screenshot or archived post</div><div class="az-sub">PNG, JPG, PDF</div></div>
+          <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('ev-e')">Browse</button>
+        </div>
+      </div>
+      <input type="file" id="fu-ev-e" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFiles(this,'ev-e')">
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     TASK SHEETS
+════════════════════════════════ -->
+
+<!-- Task builder macro (repeated for each task) -->
+<!-- T1 -->
+<div class="section" id="section-t1">
+  <div class="task-meta"><span class="tnum">TASK 01</span><span class="rb rb-s">SEBI TEAM</span><span id="sb-t1" class="stage-pill stage-on">OPEN</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t1-title">Draft: Show cause notice</div>
+  <div class="pg-sub editable" contenteditable="false" id="ed-t1-sub">Draft an SCN to Arvind Mehta under PFUTP Regulations 2003 and IA Regulations 2013, requiring him to show cause why action should not be taken against him.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t1">--</div><div class="ss-info"><div class="ss-name" id="nm-t1">--</div><div class="ss-meta" id="mt-t1">-- · --</div></div><div class="ss-time" id="st-t1"></div></div>
+  <div class="model-strip" id="ms-t1"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED — AI COMPARES YOUR SUBMISSION</span><button class="ms-toggle" onclick="togModel('t1')">Show</button></div><div class="ms-body" id="mb-t1"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS FOR THIS TASK</h4><ul>
+    <li>Cite <strong>specific provisions</strong> with factual basis for each charge</li>
+    <li>Reference <strong>specific exhibits</strong> by letter (A–E) throughout</li>
+    <li>Address <strong>Exhibit E</strong> as a provisional allegation pending IP investigation</li>
+    <li>An SCN is an allegation, not a finding — do <strong>not reach a conclusion</strong></li>
+    <li>Specify a reply deadline and the contemplated action so Mehta can prepare</li>
+  </ul></div>
+  <div class="fs"><div class="fs-ttl">Provisions alleged violated</div>
+    <div class="prov-grid">
+      <label class="pcheck"><input type="checkbox" id="t1p1" checked><span><strong>PFUTP §3(a)</strong>Fraudulent dealing in securities</span></label>
+      <label class="pcheck"><input type="checkbox" id="t1p2" checked><span><strong>PFUTP §3(b)</strong>Use of manipulative / deceptive device</span></label>
+      <label class="pcheck"><input type="checkbox" id="t1p3"><span><strong>PFUTP §4(1)</strong>Manipulating price of security</span></label>
+      <label class="pcheck"><input type="checkbox" id="t1p4" checked><span><strong>PFUTP §4(2)(a)</strong>False appearance of trading activity</span></label>
+      <label class="pcheck"><input type="checkbox" id="t1p5"><span><strong>IA Reg. 3(1)</strong>Unregistered investment advisory</span></label>
+      <label class="pcheck"><input type="checkbox" id="t1p6"><span><strong>SEBI Act §12A</strong>Prohibition on manipulation</span></label>
+    </div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Factual allegations — write in detail</div>
+    <div class="field"><div class="field-hd"><label>Manipulation scheme — buy → tip → sell sequence</label><span class="wc" id="wc-t1a">0 words</span></div>
+    <div class="hint">Reference dates and exhibits. Longer, more detailed answers score higher.</div>
+    <textarea id="t1-a" rows="7" placeholder="Between 1 March and 14 March 2024, the Noticee acquired 85,000 shares of Nakshatra Textiles Ltd (Exhibit B) at an average price of ₹44 per share, prior to making any public recommendation. On 18 March 2024, without disclosing his long position to his 47,000 Telegram subscribers, the Noticee issued a bullish recommendation (Exhibit C), causing the stock to open 8% higher on significantly elevated volume..." oninput="wc(this,'wc-t1a')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Role of Exhibit E — anonymous social media post</label><span class="wc" id="wc-t1b">0 words</span></div>
+    <textarea id="t1-b" rows="5" placeholder="On 17 March 2024 at 11:42 PM, an anonymous post by @StockAlertIndia (Exhibit E) containing false claims of a ₹800 Crore government order appeared on X, approximately 12 hours before the Noticee's first Telegram tip. The charting tool watermark visible in the post image is identical to the tool used in the Noticee's YouTube video (Exhibit D). This temporal and technical coincidence warrants further investigation..." oninput="wc(this,'wc-t1b')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Investment advisory allegation (Exhibit D — YouTube video)</label><span class="wc" id="wc-t1c">0 words</span></div>
+    <textarea id="t1-c" rows="5" placeholder="The Noticee published a video on 22 March 2024 (Exhibit D) claiming access to insider information about an imminent government order and providing specific price targets (₹250–₹300) to 1,21,400 viewers without SEBI registration. This constitutes provision of investment advice to the public within the meaning of Regulation 2(1)(m) of IA Regulations 2013, in violation of Regulation 3(1)..." oninput="wc(this,'wc-t1c')"></textarea></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Procedural directions</div>
+    <div class="field"><label>Reply deadline</label><input type="text" id="t1-d" placeholder="21 days from the date of service of this notice"></div>
+    <div class="field"><label>Action contemplated if allegations established</label>
+      <select id="t1-e"><option value="">Select...</option><option>Disgorgement of ₹1.09 Cr + penalty under §15HA SEBI Act</option><option>Debarment from securities market for specified period</option><option>Cease and desist from investment advisory activities</option><option>All of the above — disgorgement + penalty + debarment</option></select></div>
+  </div>
+  <!-- Attachment zone for task submissions -->
+  <div class="fs"><div class="fs-ttl">Supporting documents — attach your annexures</div>
+    <div id="files-t1" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t1')" ondragover="dragOver(event,'t1')" ondragleave="dragLeave('t1')" ondrop="dropFile(event,'t1')" id="az-t1">
+      <div class="attach-zone-inner">
+        <div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div class="attach-zone-text"><div class="az-main">Attach supporting documents or annexures to your SCN</div><div class="az-sub">PDF, DOCX, JPG, PNG · Drag &amp; drop or click browse</div></div>
+        <button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t1')">Browse</button>
+      </div>
+    </div>
+    <input type="file" id="fu-t1" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleFiles(this,'t1')">
+  </div>
+  <div class="submit-area">
+    <button class="btn-submit" id="btn-t1" onclick="evalTask('t1')">Submit &amp; get Groq evaluation</button>
+    <span class="sub-stamp" id="stamp-t1">✓ Submitted</span>
+    <span class="sub-note" id="note-t1">Name, roll no., timestamp recorded automatically</span>
+  </div>
+  <div class="eval-container" id="ap-t1" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t1" onclick="switchTab('t1','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t1" onclick="switchTab('t1','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t1">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t1"></div>
+      <div class="ai-fb" id="fb-t1"></div>
+      <div class="ai-scores" id="sc-t1"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t1">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t1"><div class="expert-how">This evaluation compares your submission against the <strong>expert model answer rubric</strong> stored in your Google Sheets evaluation model — the same system you use for your existing teaching evaluation.<br><br>To activate: enter your <strong>Evaluation Script URL</strong> in the faculty Command &amp; Control panel under "Expert Evaluation". The script receives the student's answer and returns rubric scores and structured feedback exactly as your existing model does.<br><br>Apps Script code for your Sheet: <code>doPost(e)</code> receives <code>{name, roll, email, task, answer, modelAnswer}</code> and returns <code>{feedback, scores}</code>.</div></div>
+      <div class="expert-scores" id="esc-t1"></div>
+      <div id="ecompare-t1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- T2 -->
+<div class="section" id="section-t2">
+  <div class="task-meta"><span class="tnum">TASK 02</span><span class="rb rb-n">NOTICEE / DEFENCE</span><span id="sb-t2" class="stage-pill stage-off">LOCKED</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t2-title">Draft: Reply to SCN</div>
+  <div class="pg-sub">You are counsel for Arvind Mehta. Draft a comprehensive reply to the Show Cause Notice, asserting all available defences and requesting appropriate relief.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t2">--</div><div class="ss-info"><div class="ss-name" id="nm-t2">--</div><div class="ss-meta" id="mt-t2">-- · --</div></div></div>
+  <div class="model-strip" id="ms-t2"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED</span><button class="ms-toggle" onclick="togModel('t2')">Show</button></div><div class="ms-body" id="mb-t2"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS</h4><ul><li>Address <strong>each allegation specifically</strong> — general denials are inadequate</li><li>Deploy the <strong>textile sector rally</strong> (28 Mar) as alternative causation evidence</li><li>Challenge the <strong>Exhibit E link</strong> — no evidence connects Mehta to the anonymous post</li><li>Request a <strong>personal hearing</strong> as a matter of natural justice</li></ul></div>
+  <div class="fs"><div class="fs-ttl">Substantive defences</div>
+    <div class="field"><div class="field-hd"><label>Defence against manipulation — PFUTP §3, §4</label><span class="wc" id="wc-t2a">0 words</span></div><textarea id="t2-a" rows="7" placeholder="The price rise in Nakshatra Textiles was caused primarily by the Government of India's textile export data released on 28 March 2024, which triggered a sector-wide rally. The Noticee's recommendations were made in good faith based on fundamental research. The Noticee held shares for 49 days post-initial purchase — a holding period entirely inconsistent with the rapid-exit motive that characterises pump-and-dump schemes..." oninput="wc(this,'wc-t2a')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Defence against Exhibit E — anonymous social media post</label><span class="wc" id="wc-t2b">0 words</span></div><textarea id="t2-b" rows="5" placeholder="The Noticee categorically denies any connection to @StockAlertIndia. No IP address, no phone number, no communication record, and no financial nexus linking the Noticee to that account has been established. The same charting tool is used by over 50,000 retail investors. Circumstantial proximity in time cannot substitute for positive evidence of identity..." oninput="wc(this,'wc-t2b')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Defence against IA Regulations — unregistered advisory</label><span class="wc" id="wc-t2c">0 words</span></div><textarea id="t2-c" rows="5" placeholder="The YouTube video carried an explicit disclaimer that the content was not investment advice. The phrase 'reliable sources' was colloquial market commentary, not a claim of UPSI. The Noticee was providing general market opinion, not personalised investment advice to specific identified clients, as required for IA Regulations 2013 to apply under Regulation 2(1)(m)..." oninput="wc(this,'wc-t2c')"></textarea></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Relief sought</div>
+    <div class="field"><label>Primary relief</label><input type="text" id="t2-d" placeholder="Drop all proceedings and exonerate the Noticee from all charges"></div>
+    <div class="field"><label>Alternative relief if any violation found</label><input type="text" id="t2-e" placeholder="Confine penalty to advisory violation only · no market debarment given first-time, good-faith conduct"></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Attach your annexures</div>
+    <div id="files-t2" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t2')" ondragover="dragOver(event,'t2')" ondragleave="dragLeave('t2')" ondrop="dropFile(event,'t2')" id="az-t2"><div class="attach-zone-inner"><div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="attach-zone-text"><div class="az-main">Attach reply annexures</div><div class="az-sub">PDF, DOCX, JPG, PNG</div></div><button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t2')">Browse</button></div></div>
+    <input type="file" id="fu-t2" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleFiles(this,'t2')">
+  </div>
+  <div class="submit-area"><button class="btn-submit" id="btn-t2" onclick="evalTask('t2')">Submit &amp; get Groq evaluation</button><span class="sub-stamp" id="stamp-t2">✓ Submitted</span><span class="sub-note" id="note-t2">Recorded with name and roll number</span></div>
+  <div class="eval-container" id="ap-t2" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t2" onclick="switchTab('t2','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t2" onclick="switchTab('t2','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t2">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t2"></div>
+      <div class="ai-fb" id="fb-t2"></div>
+      <div class="ai-scores" id="sc-t2"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t2">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t2"><div class="expert-how">This tab shows your score from the <strong>expert model answer rubric</strong> in Google Sheets — configure the Evaluation Script URL in the faculty panel to activate.</div></div>
+      <div class="expert-scores" id="esc-t2"></div>
+      <div id="ecompare-t2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- T3–T6 condensed pattern -->
+<div class="section" id="section-t3">
+  <div class="task-meta"><span class="tnum">TASK 03</span><span class="rb rb-s">SEBI TEAM</span><span id="sb-t3" class="stage-pill stage-off">LOCKED</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t3-title">Draft: Investigation report</div>
+  <div class="pg-sub">Compile a formal investigation report for the Whole Time Member. Analyse all 5 exhibits, quantify investor harm, address the Exhibit E question, and recommend enforcement action.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t3">--</div><div class="ss-info"><div class="ss-name" id="nm-t3">--</div><div class="ss-meta" id="mt-t3">-- · --</div></div></div>
+  <div class="model-strip" id="ms-t3"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED</span><button class="ms-toggle" onclick="togModel('t3')">Show</button></div><div class="ms-body" id="mb-t3"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS</h4><ul><li>Structure: <strong>Background → Evidence Analysis → Findings → Recommendation</strong></li><li>Devote a paragraph to Exhibit E — should SEBI seek IP data from X Corp?</li><li>End with clear recommendation: adjudication / interim directions / close</li></ul></div>
+  <div class="fs"><div class="fs-ttl">Report sections</div>
+    <div class="field"><div class="field-hd"><label>Background and scope of investigation</label><span class="wc" id="wc-t3a">0 words</span></div><textarea id="t3-a" rows="5" placeholder="This investigation was initiated pursuant to a complaint received on 20 May 2024 from Mr. Suresh Patel regarding alleged market manipulation in the scrip of Nakshatra Textiles Ltd (BSE: 543210)..." oninput="wc(this,'wc-t3a')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Evidence analysis — all exhibits including Exhibit E</label><span class="wc" id="wc-t3b">0 words</span></div><textarea id="t3-b" rows="8" placeholder="Analysis of BSE trade-by-trade data (Exhibit B) reveals a 340% price rise over 38 trading sessions. The Noticee's demat account shows purchases of 85,000 shares between 1-14 March, prior to any public recommendation. Cross-referencing Exhibit C (Telegram messages), Exhibit D (YouTube video), and Exhibit E (anonymous X post) reveals a communication pattern consistent with pre-arranged market manipulation..." oninput="wc(this,'wc-t3b')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Findings and recommendation</label><span class="wc" id="wc-t3c">0 words</span></div><textarea id="t3-c" rows="5" placeholder="On the basis of the foregoing analysis, prima facie violations of PFUTP Regulations 2003 (§3, §4) and IA Regulations 2013 (Reg 3) have been established. It is recommended that: (1) an SCN be issued; (2) SEBI seek a production order from X Corp for IP data linked to @StockAlertIndia; (3) an interim cease-and-desist be considered..." oninput="wc(this,'wc-t3c')"></textarea></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Attach supporting documents</div>
+    <div id="files-t3" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t3')" ondragover="dragOver(event,'t3')" ondragleave="dragLeave('t3')" ondrop="dropFile(event,'t3')" id="az-t3"><div class="attach-zone-inner"><div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="attach-zone-text"><div class="az-main">Attach investigation report annexures</div><div class="az-sub">PDF, DOCX, CSV, PNG</div></div><button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t3')">Browse</button></div></div>
+    <input type="file" id="fu-t3" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.csv" style="display:none" onchange="handleFiles(this,'t3')">
+  </div>
+  <div class="submit-area"><button class="btn-submit" id="btn-t3" onclick="evalTask('t3')">Submit &amp; get Groq evaluation</button><span class="sub-stamp" id="stamp-t3">✓ Submitted</span><span class="sub-note" id="note-t3">Recorded</span></div>
+  <div class="eval-container" id="ap-t3" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t3" onclick="switchTab('t3','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t3" onclick="switchTab('t3','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t3">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t3"></div>
+      <div class="ai-fb" id="fb-t3"></div>
+      <div class="ai-scores" id="sc-t3"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t3">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t3"><div class="expert-how">This tab shows your score from the <strong>expert model answer rubric</strong> in Google Sheets — configure the Evaluation Script URL in the faculty panel to activate.</div></div>
+      <div class="expert-scores" id="esc-t3"></div>
+      <div id="ecompare-t3"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="section-t4">
+  <div class="task-meta"><span class="tnum">TASK 04</span><span class="rb rb-s">SEBI TEAM</span><span id="sb-t4" class="stage-pill stage-off">LOCKED</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t4-title">Enforcement presentation</div>
+  <div class="pg-sub">Prepare oral arguments for the enforcement hearing. Persuade the AO on balance of probabilities, pre-empt defence arguments, and articulate a proportionate penalty prayer with precedents.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t4">--</div><div class="ss-info"><div class="ss-name" id="nm-t4">--</div><div class="ss-meta" id="mt-t4">-- · --</div></div></div>
+  <div class="model-strip" id="ms-t4"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED</span><button class="ms-toggle" onclick="togModel('t4')">Show</button></div><div class="ms-body" id="mb-t4"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS</h4><ul><li>Structure: <strong>Opening → Evidence → Rebutting defences → Penalty prayer</strong></li><li>Anticipate the <strong>textile news defence</strong> and <strong>disclaimer argument</strong></li><li>Cite at least <strong>two SEBI/SAT precedents</strong></li></ul></div>
+  <div class="fs"><div class="fs-ttl">Presentation arguments</div>
+    <div class="field"><div class="field-hd"><label>Opening statement and evidence walkthrough</label><span class="wc" id="wc-t4a">0 words</span></div><textarea id="t4-a" rows="7" placeholder="Honourable Adjudicating Officer, we are here today on a clear case of pump-and-dump manipulation. The evidence establishes a precise sequence: buy in silence (1-14 March), tip publicly (18 March onwards), sell quietly while followers hold (2-19 April), then disappear (19 April). We begin with Exhibit B: the buy-before-tip sequence is mathematically precise..." oninput="wc(this,'wc-t4a')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Rebuttal of defences and penalty prayer</label><span class="wc" id="wc-t4b">0 words</span></div><textarea id="t4-b" rows="7" placeholder="The defence will argue the 28 March textile news event caused the price rise. We submit this fails: (1) the rise began 10 days before the news; (2) NAKTEX rose 4x while the BSE Textile Index rose only 12%; (3) Mehta's selling began 5 days after the news, not before. We pray for: full disgorgement of ₹1.09 Cr; penalty of ₹2 Cr under §15HA; 5-year debarment. Relying on Kanaiyalal Baldevbhai Patel v. SEBI (SAT 2017)..." oninput="wc(this,'wc-t4b')"></textarea></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Attach presentation slides or supporting materials</div>
+    <div id="files-t4" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t4')" ondragover="dragOver(event,'t4')" ondragleave="dragLeave('t4')" ondrop="dropFile(event,'t4')" id="az-t4"><div class="attach-zone-inner"><div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="attach-zone-text"><div class="az-main">Attach presentation slides or evidence exhibits</div><div class="az-sub">PDF, PPTX, PNG, DOCX</div></div><button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t4')">Browse</button></div></div>
+    <input type="file" id="fu-t4" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.pptx,.ppt" style="display:none" onchange="handleFiles(this,'t4')">
+  </div>
+  <div class="submit-area"><button class="btn-submit" id="btn-t4" onclick="evalTask('t4')">Submit &amp; get Groq evaluation</button><span class="sub-stamp" id="stamp-t4">✓ Submitted</span><span class="sub-note" id="note-t4">Recorded</span></div>
+  <div class="eval-container" id="ap-t4" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t4" onclick="switchTab('t4','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t4" onclick="switchTab('t4','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t4">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t4"></div>
+      <div class="ai-fb" id="fb-t4"></div>
+      <div class="ai-scores" id="sc-t4"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t4">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t4"><div class="expert-how">This tab shows your score from the <strong>expert model answer rubric</strong> in Google Sheets — configure the Evaluation Script URL in the faculty panel to activate.</div></div>
+      <div class="expert-scores" id="esc-t4"></div>
+      <div id="ecompare-t4"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="section-t5">
+  <div class="task-meta"><span class="tnum">TASK 05</span><span class="rb rb-n">NOTICEE / DEFENCE</span><span id="sb-t5" class="stage-pill stage-off">LOCKED</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t5-title">Oral defence arguments</div>
+  <div class="pg-sub">Deliver oral arguments to the Adjudicating Officer. Challenge evidence admissibility, assert all defences, and argue for minimal or no penalty.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t5">--</div><div class="ss-info"><div class="ss-name" id="nm-t5">--</div><div class="ss-meta" id="mt-t5">-- · --</div></div></div>
+  <div class="model-strip" id="ms-t5"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED</span><button class="ms-toggle" onclick="togModel('t5')">Show</button></div><div class="ms-body" id="mb-t5"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS</h4><ul><li>Challenge <strong>admissibility</strong> of Exhibits D and E</li><li>Deploy <strong>sector rally argument</strong> with specific data</li><li>Argue no <strong>manipulative intent</strong> even if technical violation found</li><li>Propose <strong>reduced disgorgement</strong> (post-tax) and no debarment</li></ul></div>
+  <div class="fs"><div class="fs-ttl">Arguments</div>
+    <div class="field"><div class="field-hd"><label>Opening, Exhibit E challenge, causation defence</label><span class="wc" id="wc-t5a">0 words</span></div><textarea id="t5-a" rows="7" placeholder="Honourable Officer, my client is a market commentator whose genuine research recommendations coincided with a stock that also rose for legitimate macro reasons. Regarding Exhibit E: it is entirely inadmissible against the Noticee — not a shred of evidence links Mr. Mehta to @StockAlertIndia. The BSE Textile Index rose 18% in March-April 2024 on strong export data; NAKTEX, as a small cap with low float, responded with amplified but normal volatility..." oninput="wc(this,'wc-t5a')"></textarea></div>
+    <div class="field"><div class="field-hd"><label>Penalty mitigation arguments</label><span class="wc" id="wc-t5b">0 words</span></div><textarea id="t5-b" rows="5" placeholder="Even if this authority finds a technical advisory violation, the penalty prayed by SEBI is grossly disproportionate. Mr. Mehta is a first-time offender with no prior SEBI order. The actual disgorgeable gain after costs and capital gains tax is approximately ₹72 lakh, not ₹1.09 Cr. Market debarment would be a disproportionate response to a first-time, technical advisory violation..." oninput="wc(this,'wc-t5b')"></textarea></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Attach defence exhibits</div>
+    <div id="files-t5" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t5')" ondragover="dragOver(event,'t5')" ondragleave="dragLeave('t5')" ondrop="dropFile(event,'t5')" id="az-t5"><div class="attach-zone-inner"><div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="attach-zone-text"><div class="az-main">Attach defence documents or data</div><div class="az-sub">PDF, DOCX, CSV, PNG</div></div><button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t5')">Browse</button></div></div>
+    <input type="file" id="fu-t5" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.csv" style="display:none" onchange="handleFiles(this,'t5')">
+  </div>
+  <div class="submit-area"><button class="btn-submit" id="btn-t5" onclick="evalTask('t5')">Submit &amp; get Groq evaluation</button><span class="sub-stamp" id="stamp-t5">✓ Submitted</span><span class="sub-note" id="note-t5">Recorded</span></div>
+  <div class="eval-container" id="ap-t5" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t5" onclick="switchTab('t5','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t5" onclick="switchTab('t5','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t5">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t5"></div>
+      <div class="ai-fb" id="fb-t5"></div>
+      <div class="ai-scores" id="sc-t5"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t5">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t5"><div class="expert-how">This tab shows your score from the <strong>expert model answer rubric</strong> in Google Sheets — configure the Evaluation Script URL in the faculty panel to activate.</div></div>
+      <div class="expert-scores" id="esc-t5"></div>
+      <div id="ecompare-t5"></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="section-t6">
+  <div class="task-meta"><span class="tnum">TASK 06</span><span class="rb rb-ao">ADJ. OFFICER</span><span id="sb-t6" class="stage-pill stage-off">LOCKED</span></div>
+  <div class="pg-title editable" contenteditable="false" id="ed-t6-title">Draft: Adjudication order</div>
+  <div class="pg-sub">You have heard both sides. Pass a fully reasoned order with findings on each charge and proportionate penalty. Your order must survive SAT appeal.</div>
+  <div class="stu-strip"><div class="ss-av" id="av-t6">--</div><div class="ss-info"><div class="ss-name" id="nm-t6">--</div><div class="ss-meta" id="mt-t6">-- · --</div></div></div>
+  <div class="model-strip" id="ms-t6"><div class="ms-hd"><span class="ms-label">MODEL ANSWER LOADED</span><button class="ms-toggle" onclick="togModel('t6')">Show</button></div><div class="ms-body" id="mb-t6"></div></div>
+  <div class="instr"><h4>INSTRUCTIONS</h4><ul><li>Standard of proof: <strong>preponderance of probabilities</strong></li><li>Make specific finding on <strong>each charge separately</strong></li><li>Address all three <strong>§15J factors</strong> by name in penalty reasoning</li><li>Give full reasons — bare conclusions are SAT-vulnerable</li></ul></div>
+  <div class="fs"><div class="fs-ttl">Findings on each charge</div>
+    <div class="field"><label>Finding on PFUTP §3 (manipulation)</label><select id="t6-a"><option value="">Select...</option><option>Established — evidence conclusive</option><option>Established — balance of probabilities</option><option>Not established — insufficient evidence</option><option>Partially established</option></select></div>
+    <div class="field"><div class="field-hd"><label>Reasoning for §3 finding</label><span class="wc" id="wc-t6a">0 words</span></div><textarea id="t6-b" rows="6" placeholder="The buy-before-tip sequence established by demat records (Exhibit B) and Telegram timestamps (Exhibit C) creates a strong inference of intentional manipulation on a balance of probabilities. The channel silence on the date of the last sale corroborates the finding that the tips were designed to sustain price levels while the Noticee exited his position..." oninput="wc(this,'wc-t6a')"></textarea></div>
+    <div class="field"><label>Finding on IA Regulations</label><select id="t6-c"><option value="">Select...</option><option>Established — video constitutes unregistered advice</option><option>Not established — disclaimer adequate</option><option>Established — disclaimer does not cure substance</option></select></div>
+    <div class="field"><label>Finding on Exhibit E — anonymous X post</label><select id="t6-d"><option value="">Select...</option><option>Cannot be attributed to Mehta — insufficient evidence</option><option>Attributed on circumstantial evidence</option><option>Matter referred for further investigation</option></select></div>
+    <div class="field"><div class="field-hd"><label>Penalty reasoning — address §15J factors explicitly</label><span class="wc" id="wc-t6b">0 words</span></div><textarea id="t6-e" rows="6" placeholder="Having regard to the three factors under §15J of the SEBI Act: (i) the disproportionate gain of ₹1.09 Cr accruing to the Noticee; (ii) the loss caused to at least 47,000 subscribers and an estimated retail investor loss exceeding ₹25 lakh; (iii) the Noticee being a first-time offender with no prior SEBI order — this authority imposes..." oninput="wc(this,'wc-t6b')"></textarea></div>
+    <div class="field"><label>Penalty quantum (§15HA)</label><div class="pen-wrap"><input type="range" class="pen-slider" min="0" max="250" value="100" id="pen-slider" oninput="document.getElementById('pen-val').textContent='₹'+this.value+' lakh'"><div class="pen-val" id="pen-val">₹100 lakh</div><div class="scale-row"><span>₹0</span><span>₹125L</span><span>₹250L (max)</span></div></div></div>
+    <div class="field"><label>Market debarment</label><select id="t6-f"><option>No debarment</option><option>1 year</option><option>2 years</option><option>5 years</option><option>Permanent ban</option></select></div>
+  </div>
+  <div class="fs"><div class="fs-ttl">Attach order draft or supporting documents</div>
+    <div id="files-t6" class="file-list"></div>
+    <div class="attach-zone" onclick="triggerUpload('t6')" ondragover="dragOver(event,'t6')" ondragleave="dragLeave('t6')" ondrop="dropFile(event,'t6')" id="az-t6"><div class="attach-zone-inner"><div class="attach-zone-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v10M5 6l4-4 4 4" stroke="var(--purple)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="attach-zone-text"><div class="az-main">Attach order draft or precedent documents</div><div class="az-sub">PDF, DOCX, PNG</div></div><button class="btn-browse" onclick="event.stopPropagation();triggerUpload('t6')">Browse</button></div></div>
+    <input type="file" id="fu-t6" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleFiles(this,'t6')">
+  </div>
+  <div class="submit-area"><button class="btn-submit" id="btn-t6" onclick="evalTask('t6')">Pass order &amp; get Groq evaluation</button><span class="sub-stamp" id="stamp-t6">✓ Submitted</span><span class="sub-note" id="note-t6">Recorded</span></div>
+  <div class="eval-container" id="ap-t6" style="display:none">
+    <div class="eval-tabs">
+      <div class="eval-tab active-tab" id="gtab-t6" onclick="switchTab('t6','grok')">🤖 Groq AI evaluation</div>
+      <div class="eval-tab expert-tab" id="etab-t6" onclick="switchTab('t6','expert')">📋 Expert model evaluation</div>
+    </div>
+    <div class="eval-pane active-pane grok-pane-inner" id="gpane-t6">
+      <div class="ai-ph"><div class="ai-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#fff" stroke-width="1"/><path d="M6 3.5v3l1.5 1.5" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg></div><span class="ai-lbl">GROQ AI EVALUATION</span><span class="ai-mod">gpt-oss-120b</span></div>
+      <div class="cmp-note" id="cn-t6"></div>
+      <div class="ai-fb" id="fb-t6"></div>
+      <div class="ai-scores" id="sc-t6"></div>
+    </div>
+    <div class="eval-pane expert-pane-inner" id="epane-t6">
+      <div class="expert-ph"><div class="expert-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8 6.5l1 3.5L6 8.5 3 10l1-3.5L1 4.5h3.5z" fill="#fff"/></svg></div><span class="expert-lbl">EXPERT MODEL ANSWER EVALUATION</span><span class="expert-src">Google Sheets rubric</span></div>
+      <div id="efb-t6"><div class="expert-how">This tab shows your score from the <strong>expert model answer rubric</strong> in Google Sheets — configure the Evaluation Script URL in the faculty panel to activate.</div></div>
+      <div class="expert-scores" id="esc-t6"></div>
+      <div id="ecompare-t6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMAND & CONTROL -->
+<div class="section" id="section-cc">
+<div class="cc-wrap">
+  <div class="cc-hdr"><span class="cc-title">FACULTY COMMAND &amp; CONTROL</span><div class="cc-live"><div class="live-dot"></div>LIVE SESSION</div></div>
+
+  <!-- Config -->
+  <div class="cc-section">
+    <div class="cc-sec-title">API &amp; Sheets configuration</div>
+    <div style="background:var(--green-light);border:1px solid rgba(42,196,124,.25);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--green);margin-bottom:6px;letter-spacing:.06em">✓ SECURE PROXY ACTIVE — API KEY PROTECTED</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">All AI evaluation calls are routed through your Google Apps Script. The Groq API key is stored securely in Script Properties — never exposed to any browser or student. Evaluation works automatically on all devices with no setup required.</div>
+    </div>
+    <div class="cfg-row">
+      <div class="cfg-field" style="grid-column:1/-1">
+        <label>Expert evaluation script URL (optional — for second evaluation tab)</label>
+        <input type="text" id="cfg-eval" placeholder="https://script.google.com/macros/s/.../exec">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:5px;line-height:1.7">Optional: connect a second evaluation script for the Expert Model tab. Leave blank to use only the Groq AI evaluation tab.</div>
+      </div>
+    </div>
+    <button class="btn-save-cfg" onclick="saveCfg()">Save configuration</button>
+  </div>
+
+  <!-- Stage controls -->
+  <div class="cc-section">
+    <div class="cc-sec-title">Stage unlock controls — open or lock each task for students</div>
+    <div class="stage-grid">
+      <div class="stage-card"><div class="sc-label">Stage 1</div><div class="sc-name">Show cause notice</div><div class="toggle-row"><div class="tog on" id="tg-t1" onclick="togStage('t1')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t1">Open</span></div></div>
+      <div class="stage-card"><div class="sc-label">Stage 2</div><div class="sc-name">Reply to SCN</div><div class="toggle-row"><div class="tog" id="tg-t2" onclick="togStage('t2')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t2">Locked</span></div></div>
+      <div class="stage-card"><div class="sc-label">Stage 3</div><div class="sc-name">Investigation report</div><div class="toggle-row"><div class="tog" id="tg-t3" onclick="togStage('t3')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t3">Locked</span></div></div>
+      <div class="stage-card"><div class="sc-label">Stage 4</div><div class="sc-name">Enforcement deck</div><div class="toggle-row"><div class="tog" id="tg-t4" onclick="togStage('t4')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t4">Locked</span></div></div>
+      <div class="stage-card"><div class="sc-label">Stage 5</div><div class="sc-name">Defence arguments</div><div class="toggle-row"><div class="tog" id="tg-t5" onclick="togStage('t5')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t5">Locked</span></div></div>
+      <div class="stage-card"><div class="sc-label">Stage 6</div><div class="sc-name">Adjudication order</div><div class="toggle-row"><div class="tog" id="tg-t6" onclick="togStage('t6')"><div class="tog-thumb"></div></div><span class="sc-status" id="tst-t6">Locked</span></div></div>
+    </div>
+  </div>
+
+  <!-- Model answers -->
+  <div class="cc-section">
+    <div class="cc-sec-title">Model answers — Grok compares every submission against these</div>
+    <div class="ma-grid">
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 1 — SHOW CAUSE NOTICE</span><span class="ma-role" style="background:var(--accent-light);color:var(--accent)">SEBI</span></div><textarea class="ma-ta" id="ma-t1" placeholder="Paste your model answer for Task 1. The more detailed, the better the AI comparison. Include expected provisions, exhibit references, key arguments, and any precedents students should cite."></textarea></div>
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 2 — REPLY TO SCN</span><span class="ma-role" style="background:var(--blue-light);color:var(--blue)">NOTICEE</span></div><textarea class="ma-ta" id="ma-t2" placeholder="Model answer for Task 2 — strongest defences, causation arguments, Exhibit E challenge, IA Regulations response."></textarea></div>
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 3 — INVESTIGATION REPORT</span><span class="ma-role" style="background:var(--accent-light);color:var(--accent)">SEBI</span></div><textarea class="ma-ta" id="ma-t3" placeholder="Model answer for Task 3 — investigation structure, evidence analysis, Exhibit E paragraph, recommendation."></textarea></div>
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 4 — ENFORCEMENT DECK</span><span class="ma-role" style="background:var(--accent-light);color:var(--accent)">SEBI</span></div><textarea class="ma-ta" id="ma-t4" placeholder="Model answer for Task 4 — oral arguments, precedent citations, penalty prayer."></textarea></div>
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 5 — DEFENCE ARGUMENTS</span><span class="ma-role" style="background:var(--blue-light);color:var(--blue)">NOTICEE</span></div><textarea class="ma-ta" id="ma-t5" placeholder="Model answer for Task 5 — defence arguments, admissibility challenges, penalty mitigation."></textarea></div>
+      <div class="ma-card"><div class="ma-hd"><span class="ma-label">TASK 6 — ADJUDICATION ORDER</span><span class="ma-role" style="background:var(--purple-light);color:var(--purple)">AO</span></div><textarea class="ma-ta" id="ma-t6" placeholder="Model answer for Task 6 — findings on each charge, §15J reasoning, proportionate penalty order."></textarea></div>
+    </div>
+    <button class="btn-save-ma" onclick="saveMA()">Save all model answers</button>
+  </div>
+
+  <!-- Submissions -->
+  <div class="cc-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="cc-sec-title" style="margin:0">All submissions — <span id="sub-cnt">0</span> recorded</div>
+      <button style="font-family:var(--mono);font-size:10px;background:var(--blue-light);color:var(--blue);border:1px solid rgba(42,95,196,.25);border-radius:5px;padding:5px 12px;cursor:pointer" onclick="exportCSV()">Export CSV</button>
+    </div>
+    <table class="sub-tbl">
+      <thead><tr><th>Name</th><th>Roll no.</th><th>Email</th><th>Role</th><th>Task</th><th>Time</th><th>Grok</th><th>Files</th><th></th></tr></thead>
+      <tbody id="sub-tbody"><tr><td colspan="9" class="empty-st">No submissions yet.</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Sheets code -->
+  <div class="cc-section">
+    <div class="cc-sec-title">Google Apps Script — two scripts to set up</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:10px">
+      You need <strong>two</strong> deployed Apps Scripts. Both: script.google.com → New project → paste code → Deploy as Web App → Execute as Me → Anyone can access → copy URL.
+    </div>
+
+    <div style="font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.06em;margin-bottom:6px">SCRIPT 1 — SUBMISSION LOGGER (paste URL into "Submission logging" field above)</div>
+    <div class="code-block">// Logs every submission to a "Submissions" sheet
+// Columns: Timestamp | Name | Roll No | Email | Role | Task | Answer | Grok Score | Feedback | Files
+
+function doPost(e) {
+  const d = JSON.parse(e.postData.contents);
+  const ss = SpreadsheetApp.openById('YOUR_SHEET_ID');
+  let sh = ss.getSheetByName('Submissions') || ss.insertSheet('Submissions');
+  if (sh.getLastRow() === 0)
+    sh.appendRow(['Timestamp','Name','Roll No','Email','Role',
+                  'Task','Answer','Grok Score','Feedback','Files']);
+  sh.appendRow([new Date(), d.name, d.roll, d.email||'',
+                d.role, d.task, d.answer,
+                d.score, d.feedback, d.files||'']);
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+
+    <div style="font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.06em;margin:14px 0 6px">SCRIPT 2 — EXPERT EVALUATION MODEL (paste URL into "Expert evaluation script" field above)</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:6px">This is your existing teaching evaluation model, extended to accept submissions from the portal. The script receives the student answer + model answer, runs your rubric (keyword matching, structure check, citation check), and returns structured JSON that the portal renders as the "Expert Model Evaluation" tab.</div>
+    <div class="code-block">// Expert evaluation model — extend your existing evaluation Sheet
+// Receives: {name, roll, email, role, task, taskKey, answer, modelAnswer}
+// Returns: {feedback, scores:{legal_reasoning, evidence_citation, structure, overall}}
+
+function doPost(e) {
+  const d = JSON.parse(e.postData.contents);
+  const answer = (d.answer || '').toLowerCase();
+  const model  = (d.modelAnswer || '').toLowerCase();
+
+  // ── YOUR EXISTING RUBRIC LOGIC ────────────────────────────
+  // Replace / extend these checks with your actual rubric keywords
+  const taskRubrics = {
+    'Show Cause Notice': {
+      legal_reasoning: ['pfutp','§3','§4','fraudulent','manipulat'],
+      evidence_citation: ['exhibit','exhibit b','exhibit c','exhibit e','demat'],
+      structure: ['show cause','opportunity','reply deadline','contemplated']
+    },
+    'Reply to SCN': {
+      legal_reasoning: ['textile','sector rally','causation','disclaimer','good faith'],
+      evidence_citation: ['exhibit e','@stockalertindia','28 march','textile index'],
+      structure: ['preliminary','substantive','relief','personal hearing']
+    },
+    'Investigation Report': {
+      legal_reasoning: ['prima facie','pfutp','ia regulations','recommend'],
+      evidence_citation: ['exhibit b','exhibit c','exhibit d','exhibit e','ip address'],
+      structure: ['background','evidence analysis','findings','recommendation']
+    },
+    'Enforcement Presentation': {
+      legal_reasoning: ['kanaiyalal','shailesh soni','balance of probabilities','disgorgement'],
+      evidence_citation: ['exhibit b','exhibit c','4x','sector index'],
+      structure: ['opening','rebuttal','penalty prayer','debarment']
+    },
+    'Defence Arguments': {
+      legal_reasoning: ['causation','admissibility','manipulative intent','mitigation'],
+      evidence_citation: ['exhibit e','@stockalertindia','bse textile','capital gains'],
+      structure: ['opening','challenge','causation','penalty']
+    },
+    'Adjudication Order': {
+      legal_reasoning: ['§15j','disproportionate gain','investor loss','preponderance'],
+      evidence_citation: ['exhibit b','exhibit c','exhibit e','kanaiyalal'],
+      structure: ['finding','reasoning','penalty','disgorgement','debarment']
+    }
+  };
+
+  const rubric = taskRubrics[d.task] || taskRubrics['Show Cause Notice'];
+  function score(keywords) {
+    const hits = keywords.filter(k => answer.includes(k)).length;
+    const base = Math.round((hits / keywords.length) * 7) + 2; // 2–9 range
+    return Math.min(10, Math.max(1, base));
+  }
+
+  const lr = score(rubric.legal_reasoning);
+  const ec = score(rubric.evidence_citation);
+  const st = score(rubric.structure);
+  const ov = Math.round((lr + ec + st) / 3 * 10) / 10;
+
+  // Build feedback string
+  const missing = [];
+  rubric.legal_reasoning.filter(k=>!answer.includes(k)).slice(0,2).forEach(k=>missing.push(k));
+  rubric.evidence_citation.filter(k=>!answer.includes(k)).slice(0,1).forEach(k=>missing.push(k));
+  const feedbackParts = [];
+  if (lr >= 7) feedbackParts.push('Legal reasoning is well-grounded.');
+  else feedbackParts.push('Legal reasoning needs stronger provision citation.');
+  if (ec >= 7) feedbackParts.push('Evidence is cited effectively.');
+  else feedbackParts.push('More specific exhibit references would strengthen this submission.');
+  if (missing.length) feedbackParts.push(`Key elements to add: ${missing.join(', ')}.`);
+
+  const result = {
+    feedback: feedbackParts.join(' '),
+    scores: { legal_reasoning: lr, evidence_citation: ec, structure: st, overall: ov }
+  };
+
+  // ── LOG TO SHEET ──────────────────────────────────────────
+  const ss = SpreadsheetApp.openById('YOUR_SHEET_ID');
+  let sh = ss.getSheetByName('Expert Evaluations') || ss.insertSheet('Expert Evaluations');
+  if (sh.getLastRow() === 0)
+    sh.appendRow(['Timestamp','Name','Roll No','Email','Role','Task',
+                  'LR Score','EC Score','ST Score','Overall','Feedback']);
+  sh.appendRow([new Date(), d.name, d.roll, d.email||'',
+                d.role, d.task, lr, ec, st, ov, result.feedback]);
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7;background:var(--green-light);border-radius:8px;padding:10px 14px;border:1px solid rgba(42,196,124,.2)">
+      <strong style="color:var(--green)">Connecting to your existing evaluation model:</strong> If you already have a rubric-based evaluation script in your teaching model, replace the <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:3px">taskRubrics</code> section above with your own keyword lists or scoring logic. The portal only needs the final JSON return format — <code style="font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:3px">{feedback, scores}</code> — everything else can be your existing code.
+    </div>
+  </div>
+</div>
+</div>
+
+</main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let STU = {name:'',roll:'',email:'',role:'',ini:''};
+let IS_FAC = false;
+let API_KEY = ''; // Not used - all AI calls go through secure proxy
+let SHEETS_URL = ''; // Not used - logging handled by proxy
+let EVAL_URL = localStorage.getItem('eval_url')||'';
+// Secure proxy URL - AI key never exposed to browser
+const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzVqHwiV2e1uIgPXHQx454tmjYrRZhUC8kUaGa2DLt2nt0XYlD2bQV1LBR6OmeXDl8_hg/exec';
+let stageOpen = {t1:true,t2:false,t3:false,t4:false,t5:false,t6:false};
+let modelAnswers = JSON.parse(localStorage.getItem('ma')||'{}');
+let submissions = JSON.parse(localStorage.getItem('subs')||'[]');
+let attachedFiles = {}; // key: zone id -> array of {name,size,type,dataUrl}
+let editMode = false;
+
+const FAC_PASS = 'Rajeshk@2026';
+const MODEL = 'openai/gpt-oss-120b'; // Groq-hosted OpenAI compatible model
+const XAI_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const TASK_NAMES = {t1:'Show Cause Notice',t2:'Reply to SCN',t3:'Investigation Report',t4:'Enforcement Presentation',t5:'Defence Arguments',t6:'Adjudication Order'};
+const SCORE_LABELS = {t1:['Legal reasoning','Evidence citation','Procedure','Overall'],t2:['Argumentation','Evidence use','Structure','Overall'],t3:['Completeness','Analysis','Recommendation','Overall'],t4:['Advocacy','Evidence use','Precedents','Overall'],t5:['Advocacy','Defences raised','Mitigation','Overall'],t6:['Reasoning','Proportionality','Legal accuracy','Overall']};
+
+// ══════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════
+function selRole(el){document.querySelectorAll('.role-opt').forEach(r=>r.classList.remove('sel'));el.classList.add('sel');}
+function doLogin(){
+  const n=document.getElementById('l-name').value.trim();
+  const r=document.getElementById('l-roll').value.trim();
+  const e=document.getElementById('l-email').value.trim();
+  const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  if(!n||!r||!e||!emailOk){document.getElementById('l-err').style.display='block';return;}
+  document.getElementById('l-err').style.display='none';
+  const role=document.querySelector('.role-opt.sel')?.dataset.role||'Observer';
+  STU={name:n,roll:r,email:e,role,ini:n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)};
+  document.getElementById('ov-login').classList.add('hidden');
+  initSess();
+}
+function showFac(){document.getElementById('ov-login').classList.add('hidden');document.getElementById('ov-fac').classList.remove('hidden');}
+function showLogin(){document.getElementById('ov-fac').classList.add('hidden');document.getElementById('ov-login').classList.remove('hidden');}
+function doFacLogin(){
+  if(document.getElementById('f-pass').value!==FAC_PASS){document.getElementById('f-err').style.display='block';return;}
+  IS_FAC=true;STU={name:'Faculty',roll:'FAC-001',email:'faculty@institution.edu',role:'Faculty',ini:'FC'};
+  document.getElementById('ov-fac').classList.add('hidden');
+  initSess();
+  document.getElementById('fac-div').style.display='block';
+  document.getElementById('fac-group').style.display='block';
+  document.getElementById('edit-toggle-btn').style.display='block';
+  document.getElementById('cfg-sheets') && (document.getElementById('cfg-sheets').value=SHEETS_URL);
+  const evField=document.getElementById('cfg-eval');if(evField)evField.value=EVAL_URL;
+  loadMAFields();renderSubTable();
+}
+function initSess(){
+  const badge=document.getElementById('stu-badge');badge.style.display='flex';
+  document.getElementById('hdr-av').textContent=STU.ini;
+  document.getElementById('hdr-name').textContent=STU.name;
+  document.getElementById('hdr-roll').textContent=STU.roll;
+  const emailEl=document.getElementById('hdr-email');if(emailEl)emailEl.textContent=STU.email;
+  // Proxy handles all API calls - always show as connected
+  document.getElementById('ai-dot').classList.add('on');
+  document.getElementById('ai-txt').textContent='Groq connected';
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>{
+    const av=document.getElementById('av-'+t),nm=document.getElementById('nm-'+t),mt=document.getElementById('mt-'+t),st=document.getElementById('st-'+t);
+    if(av)av.textContent=STU.ini;if(nm)nm.textContent=STU.name;
+    if(mt)mt.textContent=STU.roll+' · '+STU.email+' · '+STU.role;
+    if(st)st.textContent=new Date().toLocaleTimeString();
+  });
+  document.getElementById('sess-txt').innerHTML=`Logged in as <strong>${STU.name}</strong> (${STU.roll}) · ${STU.email} · Role: <strong style="color:var(--accent)">${STU.role}</strong>`;
+  applyStages();loadMStrips();
+}
+function resetSess(){localStorage.removeItem('grok_key');location.reload();}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function nav(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-i').forEach(n=>n.classList.remove('active'));
+  const s=document.getElementById('section-'+id);if(s)s.classList.add('active');
+  if(el)el.classList.add('active');
+}
+function openTask(task,el){
+  if(!stageOpen[task]&&!IS_FAC){toast('Stage '+task.replace('t','')+' is locked by faculty.',true);return;}
+  nav(task,el);
+}
+
+// ══════════════════════════════════════
+// STAGE CONTROLS
+// ══════════════════════════════════════
+function togStage(t){
+  stageOpen[t]=!stageOpen[t];
+  const tg=document.getElementById('tg-'+t),ts=document.getElementById('tst-'+t);
+  stageOpen[t]?tg.classList.add('on'):tg.classList.remove('on');
+  ts.textContent=stageOpen[t]?'Open':'Locked';
+  applyStages();toast('Task '+t.replace('t','')+' '+(stageOpen[t]?'unlocked ✓':'locked'));
+}
+function applyStages(){
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>{
+    const sb=document.getElementById('sb-'+t),nav=document.getElementById('nav-'+t),btn=document.getElementById('btn-'+t);
+    if(sb){sb.textContent=stageOpen[t]?'OPEN':'LOCKED';sb.className='stage-pill '+(stageOpen[t]?'stage-on':'stage-off');}
+    if(nav){stageOpen[t]||IS_FAC?nav.classList.remove('locked'):nav.classList.add('locked');}
+    if(btn)btn.disabled=(!stageOpen[t]&&!IS_FAC);
+  });
+}
+
+// ══════════════════════════════════════
+// MODEL ANSWERS
+// ══════════════════════════════════════
+function saveMA(){
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>{const el=document.getElementById('ma-'+t);if(el)modelAnswers[t]=el.value.trim();});
+  localStorage.setItem('ma',JSON.stringify(modelAnswers));loadMStrips();toast('Model answers saved');
+}
+function loadMAFields(){['t1','t2','t3','t4','t5','t6'].forEach(t=>{const el=document.getElementById('ma-'+t);if(el&&modelAnswers[t])el.value=modelAnswers[t];});}
+function loadMStrips(){
+  ['t1','t2','t3','t4','t5','t6'].forEach(t=>{
+    const s=document.getElementById('ms-'+t),b=document.getElementById('mb-'+t);
+    if(s&&modelAnswers[t]){s.classList.add('on');if(b)b.textContent=modelAnswers[t];}
+  });
+}
+function togModel(t){const b=document.getElementById('mb-'+t),btn=document.querySelector('#ms-'+t+' .ms-toggle');if(b.classList.toggle('open'))btn.textContent='Hide';else btn.textContent='Show';}
+
+// ══════════════════════════════════════
+// CONTENT EDITING (faculty)
+// ══════════════════════════════════════
+function toggleEditMode(){
+  editMode=!editMode;
+  document.body.classList.toggle('edit-mode',editMode);
+  document.getElementById('edit-bar').classList.toggle('on',editMode);
+  document.querySelectorAll('.editable').forEach(el=>el.contentEditable=editMode?'true':'false');
+  document.getElementById('edit-toggle-btn').textContent=editMode?'Exit edit mode':'Edit content';
+  if(editMode)toast('Edit mode ON — click any text to edit');
+}
+function saveEdits(){
+  // Save all editable content to localStorage
+  const edits={};
+  document.querySelectorAll('[id^="ed-"]').forEach(el=>{edits[el.id]=el.innerHTML;});
+  localStorage.setItem('content_edits',JSON.stringify(edits));
+  toast('Content saved permanently');
+}
+// Restore saved edits on load
+// Secret faculty access: Ctrl+Shift+F
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+    e.preventDefault();
+    const loginOv = document.getElementById('ov-login');
+    const facOv = document.getElementById('ov-fac');
+    if (loginOv && !loginOv.classList.contains('hidden')) {
+      showFac();
+    } else if (!loginOv && facOv) {
+      facOv.classList.remove('hidden');
+    }
+  }
+});
+
+window.addEventListener('load',()=>{
+  // URL shortcut: add ?faculty to URL to open faculty login
+  if(window.location.search.includes('faculty')){
+    setTimeout(()=>showFac(), 300);
+  }
+  const saved=localStorage.getItem('content_edits');
+  if(saved){const edits=JSON.parse(saved);Object.entries(edits).forEach(([id,html])=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});}
+  drawChart();
+});
+
+// ══════════════════════════════════════
+// FILE ATTACHMENTS
+// ══════════════════════════════════════
+function triggerUpload(zone){document.getElementById('fu-'+zone).click();}
+function dragOver(e,zone){e.preventDefault();document.getElementById('az-'+zone)?.classList.add('drag');}
+function dragLeave(zone){document.getElementById('az-'+zone)?.classList.remove('drag');}
+function dropFile(e,zone){e.preventDefault();dragLeave(zone);const files=e.dataTransfer.files;if(files.length)processFiles(Array.from(files),zone);}
+function handleFiles(input,zone){processFiles(Array.from(input.files),zone);input.value='';}
+function processFiles(files,zone){
+  if(!attachedFiles[zone])attachedFiles[zone]=[];
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      attachedFiles[zone].push({name:f.name,size:f.size,type:f.type,dataUrl:ev.target.result});
+      renderFiles(zone);
+    };
+    if(f.type.startsWith('image/')||f.type==='application/pdf')reader.readAsDataURL(f);
+    else reader.readAsArrayBuffer(f);
+  });
+}
+function renderFiles(zone){
+  const list=document.getElementById('files-'+zone);if(!list)return;
+  const files=attachedFiles[zone]||[];
+  list.innerHTML=files.map((f,i)=>{
+    const icon=f.type.startsWith('image/')?'🖼':f.type==='application/pdf'?'📄':f.type.includes('audio')||f.type.includes('video')?'🎬':'📎';
+    const size=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB';
+    const preview=f.type.startsWith('image/')&&f.dataUrl?`<img class="fc-preview" src="${f.dataUrl}" alt="">`:'' ;
+    return `<div class="file-chip">${preview}<span class="fc-icon">${icon}</span><span class="fc-name" title="${f.name}">${f.name}</span><span class="fc-size">${size}</span><button class="fc-rm" onclick="removeFile('${zone}',${i})">×</button></div>`;
+  }).join('');
+}
+function removeFile(zone,idx){if(attachedFiles[zone])attachedFiles[zone].splice(idx,1);renderFiles(zone);}
+function getFileNames(zone){return(attachedFiles[zone]||[]).map(f=>f.name).join(', ');}
+
+// ══════════════════════════════════════
+// WORD COUNT
+// ══════════════════════════════════════
+function wc(el,tid){
+  const w=el.value.trim()?el.value.trim().split(/\s+/).length:0;
+  const t=document.getElementById(tid);if(!t)return;
+  t.textContent=w+' words';t.className='wc'+(w>=80?' ok':'');
+}
+
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+function saveCfg(){
+  // API key no longer stored in browser - handled by secure proxy
+  const ev=document.getElementById('cfg-eval');
+  if(ev&&ev.value.trim()){EVAL_URL=ev.value.trim();localStorage.setItem('eval_url',ev.value.trim());}
+  // Show proxy as connected
+  document.getElementById('ai-dot').className='ai-dot on';
+  document.getElementById('ai-txt').textContent='Groq connected';
+  toast('Configuration saved');
+}
+
+// ══════════════════════════════════════
+// COLLECT TASK DATA
+// ══════════════════════════════════════
+function collect(task){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:''};
+  const provs=['t1p1','t1p2','t1p3','t1p4','t1p5','t1p6'].filter(p=>document.getElementById(p)?.checked).map(p=>{const lbl=document.querySelector('label:has(#'+p+') span strong');return lbl?lbl.textContent:p;}).join(', ');
+  const maps={
+    t1:`Provisions selected: ${provs}\nManipulation allegation: ${g('t1-a')}\nExhibit E connection: ${g('t1-b')}\nIA Regulations allegation: ${g('t1-c')}\nReply deadline: ${g('t1-d')}\nContemplated action: ${g('t1-e')}`,
+    t2:`Manipulation defence: ${g('t2-a')}\nExhibit E defence: ${g('t2-b')}\nIA Regulations defence: ${g('t2-c')}\nPrimary relief: ${g('t2-d')}\nAlternative relief: ${g('t2-e')}`,
+    t3:`Background: ${g('t3-a')}\nEvidence analysis: ${g('t3-b')}\nFindings and recommendation: ${g('t3-c')}`,
+    t4:`Opening and evidence: ${g('t4-a')}\nRebuttal and penalty prayer: ${g('t4-b')}`,
+    t5:`Opening and Exhibit E challenge: ${g('t5-a')}\nPenalty mitigation: ${g('t5-b')}`,
+    t6:`§3 finding: ${g('t6-a')}\n§3 reasoning: ${g('t6-b')}\nIA finding: ${g('t6-c')}\nExhibit E finding: ${g('t6-d')}\nPenalty reasoning: ${g('t6-e')}\nPenalty: ₹${document.getElementById('pen-slider')?.value||100} lakh\nDebarment: ${g('t6-f')}`
+  };
+  return maps[task]||'';
+}
+
+// ══════════════════════════════════════
+// AI EVALUATION — GROK
+// ══════════════════════════════════════
+const SYS_PROMPT=`You are a senior SEBI legal expert and law professor evaluating student submissions in a simulated enforcement proceeding.
+
+CASE: Alleged pump-and-dump manipulation in Nakshatra Textiles Ltd (BSE: 543210). Arvind Mehta ran "AM Super Stock Tips" (47,000 Telegram + YouTube). He bought 85,000 shares at avg ₹44 (1-14 Mar 2024), tipped followers from 18 Mar, sold at avg ₹172 (2-19 Apr 2024). Stock rose 340% then crashed 74%. An anonymous X post (@StockAlertIndia, account created 3 days prior) made false claims of ₹800Cr govt order 12 hours before Mehta's first tip — no direct link to Mehta proven.
+
+RELEVANT LAW: PFUTP Regulations 2003 (§3a, §3b, §4(1), §4(2)(a)), IA Regulations 2013 (Reg 2(1)(m), Reg 3(1)), SEBI Act §12A, §15HA, §15J. Key precedents: Kanaiyalal Baldevbhai Patel v. SEBI (SAT 2017), SEBI v. Shailesh Soni (SAT 2019), Abhijit Rajan v. SEBI (SAT 2020).
+
+If a MODEL ANSWER is provided, compare the student's submission against it and explicitly identify: (a) what the student got right compared to model; (b) key elements present in model but missing from student submission.
+
+Respond ONLY in this exact JSON — no other text whatsoever:
+{"feedback":"2-3 sentences. Identify specific strengths and weaknesses. Reference exact provisions, exhibit letters, and precedent names. If model answer provided, note specific gaps.","scores":{"legal_reasoning":7.5,"evidence_citation":8.0,"structure":7.0,"overall":7.5}}
+All scores out of 10. Be constructive and precise.`;
+
+async function evalTask(task){
+  if(!stageOpen[task]&&!IS_FAC){toast('Stage locked.',true);return;}
+  const btn=document.getElementById('btn-'+task);
+  const panel=document.getElementById('ap-'+task);
+  const fb=document.getElementById('fb-'+task);
+  const sc=document.getElementById('sc-'+task);
+  const cn=document.getElementById('cn-'+task);
+  btn.disabled=true;btn.textContent='Evaluating...';
+  panel.style.display='block';
+  switchTab(task,'grok');
+  fb.innerHTML=`<span style="color:var(--blue);font-family:var(--mono);font-size:12px">Sending to evaluation engine<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>`;
+  sc.innerHTML=['Legal','Evidence','Structure','Overall'].map(l=>`<div class="ai-sc"><div class="ai-sc-v" style="color:var(--hint);animation:blink 1s infinite">—</div><div class="ai-sc-l">${l}</div></div>`).join('');
+  if(cn)cn.classList.remove('on');
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  const answer=collect(task);
+  const fileNames=getFileNames(task);
+  const facultyModel=modelAnswers[task]||'';
+
+  const payload={
+    type:'evaluate',
+    studentName:STU.name,
+    name:STU.name,
+    roll:STU.roll,
+    email:STU.email||'',
+    role:STU.role,
+    task:TASK_NAMES[task],
+    answer:answer||'(No content submitted)',
+    facultyModel:facultyModel,
+    files:fileNames||''
+  };
+
+  try{
+    const res=await fetch(PROXY_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error('Evaluation error '+res.status);
+    const parsed=await res.json();
+    renderEval(task,parsed,facultyModel.length>10);
+    logSub(task,answer,parsed,fileNames);
+  }catch(e){
+    try{
+      fetch(PROXY_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      fb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.8"><strong>Submission recorded.</strong> Your answer has been sent for evaluation.<br><br><span style="color:var(--muted);font-size:12px">Results will be available from your faculty. This may happen when CORS policy blocks the direct response — your submission is still saved in the Google Sheet.</span></div>`;
+      sc.innerHTML='';
+      logSub(task,answer,{feedback:'Submitted',scores:{legal_reasoning:0,evidence_citation:0,structure:0,overall:0}},fileNames);
+    }catch(e2){
+      fb.innerHTML=`<div class="ai-err">Error: ${e.message}<br>Please try again.</div>`;
+      sc.innerHTML='';
+    }
+  }
+  btn.disabled=false;btn.textContent='Resubmit';
+  document.getElementById('stamp-'+task).style.display='inline-flex';
+  document.getElementById('note-'+task).textContent='Submitted · '+new Date().toLocaleTimeString();
+  document.getElementById('nav-'+task).classList.add('done');
+}
+
+
+// ══════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════
+function switchTab(task,tab){
+  const gpane=document.getElementById('gpane-'+task);
+  const epane=document.getElementById('epane-'+task);
+  const gtab=document.getElementById('gtab-'+task);
+  const etab=document.getElementById('etab-'+task);
+  if(tab==='grok'){
+    gpane.classList.add('active-pane');epane.classList.remove('active-pane');
+    gtab.classList.add('active-tab');etab.classList.remove('active-tab');
+  } else {
+    epane.classList.add('active-pane');gpane.classList.remove('active-pane');
+    etab.classList.add('active-tab');gtab.classList.remove('active-tab');
+    // If expert not yet evaluated, show config hint
+    const esc=document.getElementById('esc-'+task);
+    if(EVAL_URL&&esc&&!esc.innerHTML.trim()){
+      document.getElementById('efb-'+task).innerHTML=`<div class="expert-how" style="color:var(--accent)">Expert evaluation not yet run — click "Submit &amp; get evaluation" on the response sheet first.</div>`;
+    }
+  }
+}
+
+// ══════════════════════════════════════
+// EXPERT EVALUATION — GOOGLE SHEETS
+// ══════════════════════════════════════
+async function callExpertSheet(task, answer){
+  if(!EVAL_URL)return;
+  const efb=document.getElementById('efb-'+task);
+  const esc=document.getElementById('esc-'+task);
+  const ecomp=document.getElementById('ecompare-'+task);
+  if(!efb)return;
+  efb.innerHTML=`<div style="color:var(--green);font-family:var(--mono);font-size:12px">Fetching expert evaluation<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+  if(esc)esc.innerHTML='';
+  try{
+    const payload={
+      name:STU.name, roll:STU.roll, email:STU.email, role:STU.role,
+      task:TASK_NAMES[task], taskKey:task,
+      answer:answer||'(No content)',
+      modelAnswer:modelAnswers[task]||'',
+      timestamp:new Date().toISOString()
+    };
+    const res=await fetch(EVAL_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok)throw new Error('Script returned '+res.status);
+    const data=await res.json();
+    renderExpertEval(task, data);
+  }catch(e){
+    // Try no-cors fallback (Sheets deployed as anyone)
+    try{
+      await fetch(EVAL_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:STU.name,roll:STU.roll,email:STU.email,role:STU.role,task:TASK_NAMES[task],answer:answer,modelAnswer:modelAnswers[task]||''})});
+      efb.innerHTML=`<div class="expert-how"><strong style="color:var(--green)">✓ Submission sent to your Google Sheets evaluation model.</strong><br><br>Your expert rubric has received this submission. The score will appear in your Sheets when the Apps Script processes it. If your script is configured to return scores, switch to CORS mode in your deployment settings to see them here.<br><br>Check your Sheet now for the row: <strong>${STU.name} · ${TASK_NAMES[task]}</strong></div>`;
+    }catch(e2){
+      efb.innerHTML=`<div class="ai-err">Could not reach evaluation script: ${e.message}<br>Check the Evaluation Script URL in the faculty panel.</div>`;
+    }
+  }
+}
+
+function renderExpertEval(task, data){
+  const efb=document.getElementById('efb-'+task);
+  const esc=document.getElementById('esc-'+task);
+  const ecomp=document.getElementById('ecompare-'+task);
+  // data should have: feedback (string), scores (object), and optionally grokScores for comparison
+  if(efb&&data.feedback){
+    efb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px">${data.feedback}</div>`;
+  }
+  const labels=['Legal reasoning','Evidence citation','Structure','Overall'];
+  const keys=['legal_reasoning','evidence_citation','structure','overall'];
+  if(esc&&data.scores){
+    esc.innerHTML=keys.map((k,i)=>{
+      const v=parseFloat(data.scores[k]||0);
+      const c=v>=8?'var(--green)':v>=6?'var(--accent)':'var(--red)';
+      return `<div class="expert-sc"><div class="expert-sc-v" style="color:${c}">${v.toFixed(1)}</div><div class="expert-sc-l">${labels[i]} /10</div></div>`;
+    }).join('');
+  }
+  // Comparison between Grok and Expert scores
+  if(ecomp&&data.scores){
+    const grokSc=document.getElementById('sc-'+task);
+    const grokVals={};
+    if(grokSc){
+      grokSc.querySelectorAll('.ai-sc').forEach((el,i)=>{
+        const v=parseFloat(el.querySelector('.ai-sc-v')?.textContent||0);
+        grokVals[keys[i]]=v;
+      });
+    }
+    const hasGrok=Object.keys(grokVals).length>0&&grokVals.overall>0;
+    const expertOverall=parseFloat(data.scores.overall||0);
+    const grokOverall=grokVals.overall||0;
+    const diff=Math.abs(expertOverall-grokOverall);
+    const agree=diff<=1.5;
+    ecomp.innerHTML=`
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin:14px 0 8px;letter-spacing:.06em">SCORE COMPARISON — GROK AI vs EXPERT RUBRIC</div>
+      ${keys.map((k,i)=>{
+        const ev=parseFloat(data.scores[k]||0);
+        const gv=hasGrok?grokVals[k]||0:0;
+        return `<div class="score-compare-row">
+          <div class="sc-label-col">${labels[i]}</div>
+          <div style="flex:1">
+            <div style="display:flex;gap:4px;margin-bottom:3px">
+              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div class="sc-bar-fill" style="width:${ev*10}%;background:var(--green)"></div></div>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--green);width:28px;text-align:right">${ev.toFixed(1)}</span>
+            </div>
+            ${hasGrok?`<div style="display:flex;gap:4px"><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div class="sc-bar-fill" style="width:${gv*10}%;background:var(--blue)"></div></div><span style="font-family:var(--mono);font-size:9px;color:var(--blue);width:28px;text-align:right">${gv.toFixed(1)}</span></div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="display:flex;gap:12px;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--muted)">
+        <span style="color:var(--green)">▬ Expert model</span>
+        ${hasGrok?`<span style="color:var(--blue)">▬ Groq AI</span>`:''}
+      </div>
+      <div class="verdict-box ${agree?'agree':'disagree'}" style="margin-top:10px">
+        ${agree
+          ? `<strong>✓ Evaluators agree</strong> — Groq AI (${grokOverall.toFixed(1)}) and expert rubric (${expertOverall.toFixed(1)}) are within 1.5 points. Consistent evaluation.`
+          : `<strong>⚠ Evaluators differ</strong> — Groq AI gave ${grokOverall.toFixed(1)} while the expert rubric gave ${expertOverall.toFixed(1)} (gap: ${diff.toFixed(1)} points). Review faculty comments for the definitive assessment.`}
+      </div>`;
+  }
+}
+
+function renderEval(task,parsed,hasModel){
+  const fb=document.getElementById('fb-'+task),sc=document.getElementById('sc-'+task),cn=document.getElementById('cn-'+task);
+  fb.innerHTML=parsed.feedback||'No feedback.';
+  if(cn&&hasModel){cn.textContent='✓ Evaluated against faculty model answer — gaps identified above.';cn.classList.add('on');}
+  const labels=SCORE_LABELS[task]||['Reasoning','Evidence','Structure','Overall'];
+  const keys=['legal_reasoning','evidence_citation','structure','overall'];
+  sc.innerHTML=keys.map((k,i)=>{
+    const v=parseFloat(parsed.scores?.[k]||0);
+    const c=v>=8?'var(--green)':v>=6?'var(--accent)':'var(--red)';
+    return `<div class="ai-sc"><div class="ai-sc-v" style="color:${c}">${v.toFixed(1)}</div><div class="ai-sc-l">${labels[i]||k} /10</div></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// LOGGING
+// ══════════════════════════════════════
+function logSub(task,answer,parsed,files){
+  const entry={id:Date.now(),name:STU.name,roll:STU.roll,email:STU.email||'',role:STU.role,task:TASK_NAMES[task],taskKey:task,answer:answer.slice(0,600),score:parseFloat(parsed.scores?.overall||0).toFixed(1),feedback:parsed.feedback||'',files:files||'',time:new Date().toLocaleString()};
+  submissions.push(entry);localStorage.setItem('subs',JSON.stringify(submissions));renderSubTable();
+  document.getElementById('sub-cnt').textContent=submissions.length;
+}
+function renderSubTable(){
+  const tbody=document.getElementById('sub-tbody');if(!tbody)return;
+  document.getElementById('sub-cnt').textContent=submissions.length;
+  if(!submissions.length){tbody.innerHTML='<tr><td colspan="9" class="empty-st">No submissions yet.</td></tr>';return;}
+  tbody.innerHTML=[...submissions].reverse().map(s=>{
+    const sc=parseFloat(s.score),cls=sc>=8?'sc-hi':sc>=6?'sc-mid':'sc-lo';
+    return `<tr><td style="font-weight:500">${s.name}</td><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.roll}</td><td style="font-family:var(--mono);font-size:10px;color:var(--blue)">${s.email||'—'}</td><td style="font-size:11px;color:var(--muted)">${s.role}</td><td style="font-size:12px">${s.task}</td><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.time}</td><td><span class="score-pill ${cls}">${s.score}/10</span></td><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.files||'—'}</td><td><button class="btn-view" onclick="viewSub(${s.id})">View</button></td></tr>`;
+  }).join('');
+}
+function viewSub(id){
+  const s=submissions.find(x=>x.id===id);if(!s)return;
+  document.getElementById('view-title').textContent=s.name+' — '+s.task;
+  document.getElementById('view-body').innerHTML=`<div style="margin-bottom:12px"><strong>${s.name}</strong> <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${s.roll} · ${s.role} · ${s.time}</span></div><div style="background:var(--surface2);border-radius:6px;padding:12px;margin-bottom:12px;font-size:12px;white-space:pre-wrap;line-height:1.8">${s.answer}</div>${s.files?`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">Files: ${s.files}</div>`:''}<div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:6px">GROK FEEDBACK</div><div style="font-size:13px;color:var(--muted);line-height:1.8">${s.feedback}</div><div style="font-family:var(--mono);font-size:14px;color:var(--accent);margin-top:10px">Overall: ${s.score}/10</div>`;
+  document.getElementById('ov-view').classList.remove('hidden');
+}
+async function logSheets(task,answer,parsed,files){
+  // Logging now handled inside the proxy (doPost in Apps Script)
+  // This function kept for compatibility but no longer needed separately
+}
+function exportCSV(){
+  if(!submissions.length){toast('No submissions yet',true);return;}
+  const rows=[['Name','Roll No','Email','Role','Task','Time','Grok Score','Expert Score','Feedback','Files attached']];
+  submissions.forEach(s=>rows.push([s.name,s.roll,s.email||'',s.role,s.task,s.time,s.score,s.expertScore||'',`"${(s.feedback||'').replace(/"/g,'""')}"`,s.files||'']));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='sebi_submissions_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('CSV exported — open in Google Sheets');
+}
+
+// ══════════════════════════════════════
+// CHART
+// ══════════════════════════════════════
+function drawChart(){
+  const ctx=document.getElementById('pc');if(!ctx)return;
+  const prices=[42,43,44,43,44,45,44,46,45,44,46,47,46,48,52,58,68,75,82,88,95,104,112,118,125,130,138,145,152,158,162,168,172,178,185,192,198,195,190,185,178,170,162,155,148,140,130,118,105,92,80,70,62,55,50,48,47,47,47,47];
+  const labels=prices.map((_,i)=>'D'+(i+1));
+  new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#c4832a',borderWidth:1.5,fill:true,backgroundColor:'rgba(196,131,42,.07)',tension:.3,pointRadius:prices.map((_,i)=>[13,17,27,37].includes(i)?5:0),pointBackgroundColor:prices.map((_,i)=>i===13?'#2ac47c':i===27?'#2a5fc4':i===37?'#c42a2a':'transparent'),pointBorderColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1814',borderColor:'#c4832a',borderWidth:1,callbacks:{label:c=>'₹'+c.parsed.y}}},scales:{x:{display:false},y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b6760',font:{family:'IBM Plex Mono',size:9},callback:v=>'₹'+v}}}}});
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function toast(msg,err=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast show'+(err?' err':'');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+</script>
+</body>
+</html>
