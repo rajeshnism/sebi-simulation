@@ -1499,11 +1499,15 @@ function pollPortalResult(url,requestId,task,timeoutMs){
         try{delete window[cb];}catch(e){window[cb]=undefined;}
         if(script.parentNode)script.parentNode.removeChild(script);
 
-        if(data && data.status==='ready' && data.result){
-          cleanup();
-          resolve(data.result);
-          return;
-        }
+        if(data && data.status === 'ready' && data.scores){
+  cleanup();
+  resolve({
+    requestId: data.requestId || requestId,
+    feedback: data.feedback || '',
+    scores: data.scores || {}
+  });
+  return;
+}
         if(data && data.status==='error'){
           cleanup();
           reject(new Error(data.message||'Evaluation failed on the server.'));
